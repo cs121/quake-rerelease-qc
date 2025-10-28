@@ -45,6 +45,23 @@ class Attenuations {
   static STATIC { 3 }
 }
 
+class TempEntityCodes {
+  static SPIKE { 0 }
+  static SUPERSPIKE { 1 }
+  static GUNSHOT { 2 }
+  static EXPLOSION { 3 }
+  static TAREXPLOSION { 4 }
+  static LIGHTNING1 { 5 }
+  static LIGHTNING2 { 6 }
+  static WIZSPIKE { 7 }
+  static KNIGHTSPIKE { 8 }
+  static LIGHTNING3 { 9 }
+  static LAVASPLASH { 10 }
+  static TELEPORT { 11 }
+  static EXPLOSION2 { 12 }
+  static BEAM { 13 }
+}
+
 class MessageTypes {
   static BROADCAST { 0 }
   static ONE { 1 }

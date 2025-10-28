@@ -301,6 +301,10 @@ class WorldModule {
     globals.bodyQueueHead = head
   }
 
+  static bodyQueue(globals, entity) {
+    // Placeholder to mirror the no-op bodyqueue() QuakeC definition.
+  }
+
   static copyToBodyQueue(globals, ent) {
     if (globals.bodyQueueHead == null) {
       WorldModule.initBodyQueue(globals)
