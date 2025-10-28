@@ -105,6 +105,14 @@ class Engine {
     _requireHost("useTargets", [entity, activator])
   }
 
+  static callEntityFunction(entity, functionName, args) {
+    _requireHost("callEntityFunction", [entity, functionName, args])
+  }
+
+  static callGlobalFunction(functionName, entity, args) {
+    _requireHost("callGlobalFunction", [functionName, entity, args])
+  }
+
   static initTrigger(entity) {
     _requireHost("initTrigger", [entity])
   }
