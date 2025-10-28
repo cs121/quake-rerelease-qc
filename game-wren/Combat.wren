@@ -333,4 +333,20 @@ class CombatModule {
       }
     }
   }
+
+  static Killed(globals, target, attacker) {
+    CombatModule.killed(globals, target, attacker)
+  }
+
+  static T_Damage(globals, target, inflictor, attacker, damage) {
+    CombatModule.tDamage(globals, target, inflictor, attacker, damage)
+  }
+
+  static T_RadiusDamage(globals, inflictor, attacker, damage, ignore) {
+    CombatModule.tRadiusDamage(globals, inflictor, attacker, damage, ignore)
+  }
+
+  static T_BeamDamage(globals, attacker, damage) {
+    CombatModule.tBeamDamage(globals, attacker, damage)
+  }
 }
