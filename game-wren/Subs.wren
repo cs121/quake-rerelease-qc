@@ -276,6 +276,49 @@ class SubsModule {
     entity.set("think", thinkFunction)
   }
 
+  // --------------------------------------------------------------------------
+  // Compatibility aliases ----------------------------------------------------
+  //
+  // Some gameplay scripts still reference the original QuakeC helper names
+  // ("SUB_*" variants).  Provide thin wrappers so callers can continue using
+  // those identifiers while sharing the core implementations above.
+
+  static subCalcMove(globals, entity, destination, speed, callback) {
+    SubsModule.calcMove(globals, entity, destination, speed, callback)
+  }
+
+  static subCalcMoveEnt(globals, entity, destination, speed, callback) {
+    SubsModule.calcMoveEnt(globals, entity, destination, speed, callback)
+  }
+
+  static subCalcMoveDone(globals, entity) {
+    SubsModule.calcMoveDone(globals, entity)
+  }
+
+  static subCalcAngleMove(globals, entity, destination, speed, callback) {
+    SubsModule.calcAngleMove(globals, entity, destination, speed, callback)
+  }
+
+  static subCalcAngleMoveEnt(globals, entity, destination, speed, callback) {
+    SubsModule.calcAngleMoveEnt(globals, entity, destination, speed, callback)
+  }
+
+  static subCalcAngleMoveDone(globals, entity) {
+    SubsModule.calcAngleMoveDone(globals, entity)
+  }
+
+  static subUseTargets(globals, entity, activator) {
+    SubsModule.useTargets(globals, entity, activator)
+  }
+
+  static subAttackFinished(globals, entity, normalTime) {
+    SubsModule.attackFinished(globals, entity, normalTime)
+  }
+
+  static subCheckRefire(globals, entity, thinkFunction) {
+    SubsModule.checkRefire(globals, entity, thinkFunction)
+  }
+
   static subRemove(globals, entity) {
     if (entity == null) return
     Engine.removeEntity(entity)
