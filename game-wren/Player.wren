@@ -157,6 +157,79 @@ class PlayerModule {
     player.set("nextthink", -1)
   }
 
+  static set_suicide_frame(globals, player) {
+    PlayerModule.setSuicideFrame(globals, player)
+  }
+
+  static SetSuicideFrame(globals, player) {
+    PlayerModule.setSuicideFrame(globals, player)
+  }
+
+  static playerDead(player) {
+    if (player == null) return
+    PlayerModule._playerDead(player)
+  }
+
+  static PlayerDead(player) {
+    PlayerModule.playerDead(player)
+  }
+
+  static deathSound(globals, player) {
+    PlayerModule._deathSound(globals, player)
+  }
+
+  static DeathSound(globals, player) {
+    PlayerModule.deathSound(globals, player)
+  }
+
+  static painSound(globals, player) {
+    PlayerModule._painSound(globals, player)
+  }
+
+  static PainSound(globals, player) {
+    PlayerModule.painSound(globals, player)
+  }
+
+  static gibPlayer(globals, player) {
+    PlayerModule._gibPlayer(globals, player)
+  }
+
+  static GibPlayer(globals, player) {
+    PlayerModule.gibPlayer(globals, player)
+  }
+
+  static velocityForDamage(damage) {
+    return PlayerModule._velocityForDamage(damage)
+  }
+
+  static VelocityForDamage(damage) {
+    return PlayerModule.velocityForDamage(damage)
+  }
+
+  static throwGib(globals, player, model, damage) {
+    if (player == null) return
+    var previousSelf = globals.self
+    globals.self = player
+    PlayerModule._throwGib(globals, player, model, damage)
+    globals.self = previousSelf
+  }
+
+  static ThrowGib(globals, player, model, damage) {
+    PlayerModule.throwGib(globals, player, model, damage)
+  }
+
+  static throwHead(globals, player, model, damage) {
+    if (player == null) return
+    var previousSelf = globals.self
+    globals.self = player
+    PlayerModule._throwHead(globals, player, model, damage)
+    globals.self = previousSelf
+  }
+
+  static ThrowHead(globals, player, model, damage) {
+    PlayerModule.throwHead(globals, player, model, damage)
+  }
+
   static player_stand1(globals, player) {
     if (player == null) return
     player.set("weaponframe", 0)
@@ -756,6 +829,14 @@ class PlayerModule {
     }
   }
 
+  static player_pain(globals, player, attacker, damage) {
+    PlayerModule.playerPain(globals, player, attacker, damage)
+  }
+
+  static PlayerPain(globals, player, attacker, damage) {
+    PlayerModule.playerPain(globals, player, attacker, damage)
+  }
+
   static playerDie(globals, player) {
     var removeMask = Engine.bitOrMany([
       Items.INVISIBILITY,
@@ -821,6 +902,10 @@ class PlayerModule {
     var choice = PlayerModule._randomChoice(deathAnimations)
     if (choice == null) choice = "player_diea1"
     PlayerModule._startDeathAnimation(globals, player, choice)
+  }
+
+  static PlayerDie(globals, player) {
+    PlayerModule.playerDie(globals, player)
   }
 
   static backpackTouch(globals, backpack, other) {
@@ -919,10 +1004,12 @@ class PlayerModule {
     bubble.set("velocity", [0, 0, 15])
     bubble.set("classname", "bubble")
     bubble.set("frame", 0)
+    bubble.set("cnt", 0)
     Engine.setSize(bubble, [-8, -8, -8], [8, 8, 8])
-    bubble.set("think", "SubsModule.subRemove")
-    bubble.set("nextthink", Engine.time() + 0.5)
-    Engine.scheduleThink(bubble, "SubsModule.subRemove", 0.5)
+    bubble.set("think", "PlayerModule.bubble_bob")
+    var nextThink = Engine.time() + 0.5
+    bubble.set("nextthink", nextThink)
+    Engine.scheduleThink(bubble, "PlayerModule.bubble_bob", 0.5)
 
     var produced = spawner.get("air_finished", 0) + 1
     spawner.set("air_finished", produced)
@@ -934,6 +1021,40 @@ class PlayerModule {
 
     spawner.set("nextthink", Engine.time() + 0.1)
     Engine.scheduleThink(spawner, "PlayerModule.deathBubblesSpawn", 0.1)
+  }
+
+  static bubble_bob(globals, bubble) {
+    if (bubble == null) return
+
+    var count = bubble.get("cnt", 0) + 1
+    bubble.set("cnt", count)
+
+    if (count == 4) {
+      PlayerModule._bubbleSplit(globals, bubble)
+    }
+
+    if (count >= 20) {
+      Engine.removeEntity(bubble)
+      return
+    }
+
+    var velocity = bubble.get("velocity", [0, 0, 0])
+    var rnd1 = velocity[0] + (-10 + Engine.random() * 20)
+    var rnd2 = velocity[1] + (-10 + Engine.random() * 20)
+    var rnd3 = velocity[2] + 10 + Engine.random() * 10
+
+    if (rnd1 > 10) rnd1 = 5
+    if (rnd1 < -10) rnd1 = -5
+    if (rnd2 > 10) rnd2 = 5
+    if (rnd2 < -10) rnd2 = -5
+    if (rnd3 < 10) rnd3 = 15
+    if (rnd3 > 30) rnd3 = 25
+
+    bubble.set("velocity", [rnd1, rnd2, rnd3])
+
+    var nextThink = Engine.time() + 0.5
+    bubble.set("nextthink", nextThink)
+    Engine.scheduleThink(bubble, "PlayerModule.bubble_bob", 0.5)
   }
 
   static _loopFrames(player, frames, indexField, nextName) {
@@ -1148,6 +1269,34 @@ class PlayerModule {
     player.set("flags", flags)
 
     player.set("avelocity", [0, (Engine.random() * 2 - 1) * 600, 0])
+  }
+
+  static _bubbleSplit(globals, bubble) {
+    if (bubble == null) return
+
+    var newBubble = Engine.spawnEntity()
+    Engine.setModel(newBubble, "progs/s_bubble.spr")
+    var origin = bubble.get("origin", [0, 0, 0])
+    Engine.setOrigin(newBubble, origin)
+    newBubble.set("origin", origin)
+    newBubble.set("movetype", MoveTypes.NOCLIP)
+    newBubble.set("solid", SolidTypes.NOT)
+    newBubble.set("velocity", bubble.get("velocity", [0, 0, 15]))
+    newBubble.set("classname", "bubble")
+    newBubble.set("frame", 1)
+    newBubble.set("cnt", 10)
+    Engine.setSize(newBubble, [-8, -8, -8], [8, 8, 8])
+    newBubble.set("think", "PlayerModule.bubble_bob")
+    var delay = 0.5
+    newBubble.set("nextthink", Engine.time() + delay)
+    Engine.scheduleThink(newBubble, "PlayerModule.bubble_bob", delay)
+
+    bubble.set("frame", 1)
+    bubble.set("cnt", 10)
+
+    if (bubble.get("waterlevel", 3) != 3) {
+      Engine.removeEntity(bubble)
+    }
   }
 
   static _playerDead(player) {

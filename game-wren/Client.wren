@@ -295,6 +295,10 @@ class ClientModule {
     Engine.scheduleThink(trigger, "Client.executeChangeLevel", 0.1)
   }
 
+  static changelevel_touch(globals, trigger, toucher) {
+    ClientModule.changeLevelTouch(globals, trigger, toucher)
+  }
+
   static exitIntermission(globals) {
     if (globals.deathmatch > 0) {
       gotoNextMap(globals)
@@ -441,6 +445,10 @@ class ClientModule {
     }
   }
 
+  static execute_changelevel(globals) {
+    ClientModule.executeChangeLevel(globals)
+  }
+
   static triggerChangeLevel(globals, trigger) {
     var mapName = trigger.get("map", null)
     if (mapName == null || mapName == "") {
@@ -455,9 +463,17 @@ class ClientModule {
     Engine.setTriggerTouch(trigger, "Client.changeLevelTouch")
   }
 
+  static trigger_changelevel(globals, trigger) {
+    ClientModule.triggerChangeLevel(globals, trigger)
+  }
+
   static infoIntermission(globals, entity) {
     // Marker entity used purely for camera placement during intermissions.
     // QuakeC definition is intentionally empty, so we mirror that behavior.
+  }
+
+  static info_intermission(globals, entity) {
+    ClientModule.infoIntermission(globals, entity)
   }
 
   static infoPlayerStart(globals, entity) {
@@ -465,9 +481,17 @@ class ClientModule {
     // data, matching the QuakeC stub definition.
   }
 
+  static info_player_start(globals, entity) {
+    ClientModule.infoPlayerStart(globals, entity)
+  }
+
   static infoPlayerStart2(globals, entity) {
     // Alternate start location used when returning to the start map between
     // episodes. Provided for parity with the QuakeC stub implementation.
+  }
+
+  static info_player_start2(globals, entity) {
+    ClientModule.infoPlayerStart2(globals, entity)
   }
 
   static testPlayerStart(globals, entity) {
@@ -475,13 +499,25 @@ class ClientModule {
     // empty in QuakeC, so no additional logic is required here.
   }
 
+  static testplayerstart(globals, entity) {
+    ClientModule.testPlayerStart(globals, entity)
+  }
+
   static infoPlayerDeathmatch(globals, entity) {
     // Multiplayer spawn point. The QuakeC version is a stub, so we simply
     // expose the entry point for completeness.
   }
 
+  static info_player_deathmatch(globals, entity) {
+    ClientModule.infoPlayerDeathmatch(globals, entity)
+  }
+
   static infoPlayerCoop(globals, entity) {
     // Cooperative spawn point. QuakeC treats this as a no-op definition.
+  }
+
+  static info_player_coop(globals, entity) {
+    ClientModule.infoPlayerCoop(globals, entity)
   }
 
   static respawn(globals, player) {
@@ -1350,4 +1386,26 @@ class ClientModule {
 
     Engine.broadcastPrint("$qc_death_died", [targetName])
   }
+
+  static CheckPowerups(globals, player) { ClientModule.checkPowerups(globals, player) }
+  static CheckRules(globals, player) { ClientModule.checkRules(globals, player) }
+  static CheckWaterJump(globals, player) { ClientModule.checkWaterJump(globals, player) }
+  static ClientConnect(globals, player) { ClientModule.clientConnect(globals, player) }
+  static ClientDisconnect(globals, player) { ClientModule.clientDisconnect(globals, player) }
+  static ClientKill(globals, player) { ClientModule.clientKill(globals, player) }
+  static ClientObituary(globals, attacker, target) { ClientModule.clientObituary(globals, attacker, target) }
+  static DecodeLevelParms(globals, player) { ClientModule.decodeLevelParms(globals, player) }
+  static ExitIntermission(globals) { ClientModule.exitIntermission(globals) }
+  static FindIntermission(globals) { return ClientModule.findIntermission(globals) }
+  static GotoNextMap(globals) { ClientModule.gotoNextMap(globals) }
+  static IntermissionThink(globals, player) { ClientModule.intermissionThink(globals, player) }
+  static NextLevel(globals) { ClientModule.nextLevel(globals) }
+  static PlayerDeathThink(globals, player) { ClientModule.playerDeathThink(globals, player) }
+  static PlayerJump(globals, player) { ClientModule.playerJump(globals, player) }
+  static PlayerPostThink(globals, player) { ClientModule.playerPostThink(globals, player) }
+  static PlayerPreThink(globals, player) { ClientModule.playerPreThink(globals, player) }
+  static PutClientInServer(globals, player) { ClientModule.putClientInServer(globals, player) }
+  static SetChangeParms(globals, player) { ClientModule.setChangeParms(globals, player) }
+  static SetNewParms(globals, player) { ClientModule.setNewParms(globals, player) }
+  static WaterMove(globals, player) { ClientModule.waterMove(globals, player) }
 }
