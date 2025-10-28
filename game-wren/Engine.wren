@@ -85,6 +85,14 @@ class Engine {
     }
   }
 
+  static writeCoord(channel, value, entity) {
+    if (entity == null) {
+      _requireHost("writeCoord", [channel, value])
+    } else {
+      _requireHost("writeCoord", [channel, value, entity])
+    }
+  }
+
   static broadcastPrint(messageId, args) {
     _requireHost("broadcastPrint", [messageId, args])
   }
@@ -99,6 +107,10 @@ class Engine {
 
   static ambientSound(origin, sample, volume, attenuation) {
     _requireHost("ambientSound", [origin, sample, volume, attenuation])
+  }
+
+  static emitTempEntity(code, data) {
+    _requireHost("emitTempEntity", [code, data])
   }
 
   static applyDamage(target, inflictor, attacker, amount) {
@@ -197,8 +209,24 @@ class Engine {
     return _requireHost("traceLine", [start, end, ignoreMonsters, ignoreEntity])
   }
 
+  static pointContents(origin) {
+    return _requireHost("pointContents", [origin])
+  }
+
   static makeVectors(angles) {
     return _requireHost("makeVectors", [angles])
+  }
+
+  static vectorToAngles(vector) {
+    return _requireHost("vectorToAngles", [vector])
+  }
+
+  static aim(shooter, distance) {
+    return _requireHost("aim", [shooter, distance])
+  }
+
+  static spawnParticles(origin, velocity, color, count) {
+    _requireHost("spawnParticles", [origin, velocity, color, count])
   }
 
   static isVisible(observer, target) {

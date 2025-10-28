@@ -5,6 +5,9 @@
 
 import "./Engine" for Engine
 import "./Globals" for Items, Channels, Attenuations, PlayerExtraFlags
+import "./Globals" for SolidTypes, MoveTypes, DamageValues, Contents, TempEntityCodes
+import "./Combat" for CombatModule
+import "./Subs" for SubsModule
 
 var _WEAPON_SOUNDS = [
   "weapons/r_exp3.wav",
@@ -22,9 +25,403 @@ var _WEAPON_SOUNDS = [
 ]
 
 var _AMMO_BITS = null
-var _STUB_WARNED = {}
 
 class WeaponsModule {
+  static _vectorAdd(a, b) {
+    return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+  }
+
+  static _vectorSub(a, b) {
+    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+  }
+
+  static _vectorScale(v, scalar) {
+    return [v[0] * scalar, v[1] * scalar, v[2] * scalar]
+  }
+
+  static _vectorLength(v) {
+    return (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt
+  }
+
+  static _vectorNormalize(v) {
+    var length = WeaponsModule._vectorLength(v)
+    if (length == 0) return [0, 0, 0]
+    return WeaponsModule._vectorScale(v, 1 / length)
+  }
+
+  static _vectorDot(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+  }
+
+  static _cRandom() {
+    return Engine.random() * 2 - 1
+  }
+
+  static _defaultVectors() {
+    return {
+      "forward": [1, 0, 0],
+      "right": [0, 1, 0],
+      "up": [0, 0, 1]
+    }
+  }
+
+  static _makeVectors(angles) {
+    var vectors = Engine.makeVectors(angles)
+    if (vectors == null) return WeaponsModule._defaultVectors()
+    if (!vectors.containsKey("forward")) vectors["forward"] = [1, 0, 0]
+    if (!vectors.containsKey("right")) vectors["right"] = [0, 1, 0]
+    if (!vectors.containsKey("up")) vectors["up"] = [0, 0, 1]
+    return vectors
+  }
+
+  static _eyeOrigin(entity) {
+    return WeaponsModule._vectorAdd(entity.get("origin", [0, 0, 0]), [0, 0, 16])
+  }
+
+  static _absMinZ(entity) {
+    var absmin = entity.get("absmin", null)
+    if (absmin != null) return absmin[2]
+    var origin = entity.get("origin", [0, 0, 0])
+    var mins = entity.get("mins", [0, 0, 0])
+    return origin[2] + mins[2]
+  }
+
+  static _sizeZ(entity) {
+    var size = entity.get("size", null)
+    if (size != null) return size[2]
+    var mins = entity.get("mins", [0, 0, 0])
+    var maxs = entity.get("maxs", [0, 0, 0])
+    return maxs[2] - mins[2]
+  }
+
+  static _spawnParticles(origin, velocity, color, count) {
+    Engine.spawnParticles(origin, velocity, color, count)
+  }
+
+  static _spawnBlood(origin, velocity, damage) {
+    WeaponsModule._spawnParticles(origin, velocity, 73, (damage * 2).ceil)
+  }
+
+  static _emitGunshot(origin) {
+    Engine.emitTempEntity(TempEntityCodes.GUNSHOT, {"origin": origin})
+  }
+
+  static _emitSpike(origin, isSuper) {
+    var code = isSuper ? TempEntityCodes.SUPERSPIKE : TempEntityCodes.SPIKE
+    Engine.emitTempEntity(code, {"origin": origin})
+  }
+
+  static _emitExplosion(origin) {
+    Engine.emitTempEntity(TempEntityCodes.EXPLOSION, {"origin": origin})
+  }
+
+  static _emitLightning(owner, start, end) {
+    Engine.emitTempEntity(TempEntityCodes.LIGHTNING2, {
+      "owner": owner,
+      "start": start,
+      "end": end
+    })
+  }
+
+  static _newDamageMap() {
+    return {}
+  }
+
+  static _addDamage(damageMap, entity, amount) {
+    if (entity == null) return
+    if (!damageMap.containsKey(entity)) {
+      damageMap[entity] = 0.0
+    }
+    damageMap[entity] = damageMap[entity] + amount
+  }
+
+  static _applyDamage(globals, inflictor, attacker, damageMap) {
+    for (entity in damageMap.keys) {
+      var amount = damageMap[entity]
+      CombatModule.tDamage(globals, entity, inflictor, attacker, amount)
+    }
+  }
+
+  static _aimDirection(player, distance) {
+    var dir = Engine.aim(player, distance)
+    if (dir == null) {
+      var vectors = WeaponsModule._makeVectors(player.get("v_angle", [0, 0, 0]))
+      dir = vectors["forward"]
+    }
+    return WeaponsModule._vectorNormalize(dir)
+  }
+
+  static _traceAttack(globals, shooter, direction, trace, right, up, damageMap, damage) {
+    var randomRight = WeaponsModule._vectorScale(right, WeaponsModule._cRandom())
+    var randomUp = WeaponsModule._vectorScale(up, WeaponsModule._cRandom())
+    var vel = WeaponsModule._vectorAdd(direction, WeaponsModule._vectorAdd(randomUp, randomRight))
+    vel = WeaponsModule._vectorNormalize(vel)
+    var plane = trace.containsKey("planeNormal") ? trace["planeNormal"] : [0, 0, 0]
+    vel = WeaponsModule._vectorAdd(vel, WeaponsModule._vectorScale(plane, 2))
+    vel = WeaponsModule._vectorScale(vel, 200)
+
+    var endpos = trace.containsKey("endpos") ? trace["endpos"] : WeaponsModule._vectorAdd(shooter.get("origin", [0, 0, 0]), WeaponsModule._vectorScale(direction, 64))
+    var impact = WeaponsModule._vectorSub(endpos, WeaponsModule._vectorScale(direction, 4))
+    var hit = trace.containsKey("entity") ? trace["entity"] : null
+
+    if (hit != null && hit.get("takedamage", DamageValues.NO) != DamageValues.NO) {
+      WeaponsModule._spawnBlood(impact, WeaponsModule._vectorScale(vel, 0.2), damage)
+      WeaponsModule._addDamage(damageMap, hit, damage)
+    } else {
+      WeaponsModule._emitGunshot(impact)
+    }
+  }
+
+  static _fireBullets(globals, shooter, shotCount, dir, spread) {
+    var vectors = WeaponsModule._makeVectors(shooter.get("v_angle", [0, 0, 0]))
+    var forward = vectors["forward"]
+    var right = vectors["right"]
+    var up = vectors["up"]
+
+    var src = WeaponsModule._vectorAdd(shooter.get("origin", [0, 0, 0]), WeaponsModule._vectorScale(forward, 10))
+    var baseZ = WeaponsModule._absMinZ(shooter) + WeaponsModule._sizeZ(shooter) * 0.7
+    src[2] = baseZ
+
+    var damageMap = WeaponsModule._newDamageMap()
+
+    while (shotCount > 0) {
+      var offset = WeaponsModule._vectorAdd(
+        WeaponsModule._vectorScale(right, WeaponsModule._cRandom() * spread[0]),
+        WeaponsModule._vectorScale(up, WeaponsModule._cRandom() * spread[1])
+      )
+      var direction = WeaponsModule._vectorAdd(dir, offset)
+      direction = WeaponsModule._vectorNormalize(direction)
+      var end = WeaponsModule._vectorAdd(src, WeaponsModule._vectorScale(direction, 2048))
+      var trace = Engine.traceLine(src, end, false, shooter)
+      if (trace != null && trace.containsKey("fraction") && trace["fraction"] < 1) {
+        WeaponsModule._traceAttack(globals, shooter, direction, trace, right, up, damageMap, 4)
+      }
+      shotCount = shotCount - 1
+    }
+
+    WeaponsModule._applyDamage(globals, shooter, shooter, damageMap)
+  }
+
+  static _fireRegularSpikes(globals, player, offset) {
+    Engine.playSound(player, Channels.WEAPON, "weapons/rocket1i.wav", 1, Attenuations.NORMAL)
+    player.set("attack_finished", Engine.time() + 0.2)
+    var ammo = player.get("ammo_nails", 0) - 1
+    player.set("ammo_nails", ammo)
+    player.set("currentammo", ammo)
+
+    var vectors = WeaponsModule._makeVectors(player.get("v_angle", [0, 0, 0]))
+    var origin = WeaponsModule._vectorAdd(WeaponsModule._eyeOrigin(player), WeaponsModule._vectorScale(vectors["right"], offset))
+    var dir = WeaponsModule._aimDirection(player, 1000)
+    WeaponsModule._launchSpike(globals, player, origin, dir, false)
+    player.set("punchangle", [-2, 0, 0])
+  }
+
+  static _fireSuperSpikes(globals, player) {
+    Engine.playSound(player, Channels.WEAPON, "weapons/spike2.wav", 1, Attenuations.NORMAL)
+    player.set("attack_finished", Engine.time() + 0.2)
+    var ammo = player.get("ammo_nails", 0) - 2
+    player.set("ammo_nails", ammo)
+    player.set("currentammo", ammo)
+
+    var dir = WeaponsModule._aimDirection(player, 1000)
+    var origin = WeaponsModule._eyeOrigin(player)
+    WeaponsModule._launchSpike(globals, player, origin, dir, true)
+    player.set("punchangle", [-2, 0, 0])
+  }
+
+  static _fireSpikes(globals, player) {
+    var weapon = player.get("weapon", Items.NAILGUN)
+    var ammo = player.get("ammo_nails", 0)
+
+    if (weapon == Items.SUPER_NAILGUN) {
+      if (ammo >= 2) {
+        WeaponsModule._fireSuperSpikes(globals, player)
+        return
+      }
+      player.set("weapon", WeaponsModule.bestWeapon(globals, player))
+      WeaponsModule.setCurrentAmmo(globals, player)
+      return
+    }
+
+    if (ammo < 1) {
+      player.set("weapon", WeaponsModule.bestWeapon(globals, player))
+      WeaponsModule.setCurrentAmmo(globals, player)
+      return
+    }
+
+    var cycle = player.get("nail_cycle", 0)
+    var offset = cycle == 0 ? 4 : -4
+    player.set("nail_cycle", cycle == 0 ? 1 : 0)
+    WeaponsModule._fireRegularSpikes(globals, player, offset)
+  }
+
+  static _launchSpike(globals, owner, origin, dir, isSuper) {
+    var missile = Engine.spawnEntity()
+    missile.set("classname", isSuper ? "super_spike" : "spike")
+    missile.set("owner", owner)
+    missile.set("movetype", MoveTypes.FLYMISSILE)
+    missile.set("solid", SolidTypes.BBOX)
+
+    var velocity = WeaponsModule._vectorScale(dir, 1000)
+    missile.set("velocity", velocity)
+    missile.set("angles", Engine.vectorToAngles(velocity))
+
+    var touch = isSuper ? "WeaponsModule.superSpikeTouch" : "WeaponsModule.spikeTouch"
+    missile.set("touch", touch)
+
+    missile.set("think", "SubsModule.subRemove")
+    var removeDelay = 6.0
+    missile.set("nextthink", Engine.time() + removeDelay)
+    Engine.scheduleThink(missile, "SubsModule.subRemove", removeDelay)
+
+    Engine.setModel(missile, isSuper ? "progs/s_spike.mdl" : "progs/spike.mdl")
+    Engine.setSize(missile, [0, 0, 0], [0, 0, 0])
+    Engine.setOrigin(missile, origin)
+    return missile
+  }
+
+  static _grenadeExplode(globals, grenade) {
+    if (grenade == null) return
+    var owner = grenade.get("owner", null)
+    CombatModule.tRadiusDamage(globals, grenade, owner, 120, globals.world)
+    WeaponsModule._emitExplosion(grenade.get("origin", [0, 0, 0]))
+    Engine.removeEntity(grenade)
+  }
+
+  static grenadeExplode(globals, grenade) {
+    WeaponsModule._grenadeExplode(globals, grenade)
+  }
+
+  static grenadeTouch(globals, grenade, other) {
+    if (grenade == null) return
+    if (other == null) return
+    if (other == grenade.get("owner", null)) return
+
+    if (other.get("takedamage", DamageValues.NO) == DamageValues.AIM) {
+      WeaponsModule._grenadeExplode(globals, grenade)
+      return
+    }
+
+    Engine.playSound(grenade, Channels.WEAPON, "weapons/bounce.wav", 1, Attenuations.NORMAL)
+    var velocity = grenade.get("velocity", [0, 0, 0])
+    if (velocity[0] == 0 && velocity[1] == 0 && velocity[2] == 0) {
+      grenade.set("avelocity", [0, 0, 0])
+    }
+  }
+
+  static _spikeDamage(globals, spike, other, damage, isSuper) {
+    var owner = spike.get("owner", null)
+    if (other.get("takedamage", DamageValues.NO) != DamageValues.NO) {
+      WeaponsModule._spawnBlood(spike.get("origin", [0, 0, 0]), spike.get("velocity", [0, 0, 0]), damage)
+      CombatModule.tDamage(globals, other, spike, owner == null ? spike : owner, damage)
+    } else {
+      WeaponsModule._emitSpike(spike.get("origin", [0, 0, 0]), isSuper)
+    }
+    Engine.removeEntity(spike)
+  }
+
+  static spikeTouch(globals, spike, other) {
+    if (spike == null) return
+    if (other == null) return
+    if (other == spike.get("owner", null)) return
+    if (other.get("solid", SolidTypes.NOT) == SolidTypes.TRIGGER) return
+
+    var contents = Engine.pointContents(spike.get("origin", [0, 0, 0]))
+    if (contents == Contents.SKY) {
+      Engine.removeEntity(spike)
+      return
+    }
+
+    WeaponsModule._spikeDamage(globals, spike, other, 9, false)
+  }
+
+  static superSpikeTouch(globals, spike, other) {
+    if (spike == null) return
+    if (other == null) return
+    if (other == spike.get("owner", null)) return
+    if (other.get("solid", SolidTypes.NOT) == SolidTypes.TRIGGER) return
+
+    var contents = Engine.pointContents(spike.get("origin", [0, 0, 0]))
+    if (contents == Contents.SKY) {
+      Engine.removeEntity(spike)
+      return
+    }
+
+    WeaponsModule._spikeDamage(globals, spike, other, 18, true)
+  }
+
+  static _handleLightningTrace(globals, attacker, trace, damage, skipA, skipB) {
+    if (trace == null) return null
+    if (!trace.containsKey("entity")) return null
+    var target = trace["entity"]
+    if (target == null) return null
+    if (target == skipA || target == skipB) return target
+    if (target.get("takedamage", DamageValues.NO) == DamageValues.NO) return target
+
+    var endpos = trace.containsKey("endpos") ? trace["endpos"] : target.get("origin", [0, 0, 0])
+    WeaponsModule._spawnParticles(endpos, [0, 0, 100], 225, (damage * 4).ceil)
+    CombatModule.tDamage(globals, target, attacker, attacker, damage)
+
+    if (attacker != null && attacker.get("classname", "") == "player" && target.get("classname", "") == "player") {
+      var velocity = target.get("velocity", [0, 0, 0])
+      velocity[2] = velocity[2] + 400
+      target.set("velocity", velocity)
+    }
+
+    return target
+  }
+
+  static _lightningDamage(globals, attacker, start, end, damage) {
+    var direction = WeaponsModule._vectorSub(end, start)
+    if (WeaponsModule._vectorLength(direction) == 0) return
+    direction = WeaponsModule._vectorNormalize(direction)
+
+    var perpendicular = [-direction[1], direction[0], 0]
+    if (WeaponsModule._vectorLength(perpendicular) == 0) {
+      perpendicular = [0, 0, 0]
+    } else {
+      perpendicular = WeaponsModule._vectorScale(WeaponsModule._vectorNormalize(perpendicular), 16)
+    }
+
+    var centerTrace = Engine.traceLine(start, end, false, attacker)
+    var first = WeaponsModule._handleLightningTrace(globals, attacker, centerTrace, damage, null, null)
+
+    if (perpendicular[0] != 0 || perpendicular[1] != 0 || perpendicular[2] != 0) {
+      var offsetStart = WeaponsModule._vectorAdd(start, perpendicular)
+      var offsetEnd = WeaponsModule._vectorAdd(end, perpendicular)
+      var secondTrace = Engine.traceLine(offsetStart, offsetEnd, false, attacker)
+      var second = WeaponsModule._handleLightningTrace(globals, attacker, secondTrace, damage, first, null)
+
+      var negStart = WeaponsModule._vectorSub(start, perpendicular)
+      var negEnd = WeaponsModule._vectorSub(end, perpendicular)
+      var thirdTrace = Engine.traceLine(negStart, negEnd, false, attacker)
+      WeaponsModule._handleLightningTrace(globals, attacker, thirdTrace, damage, first, second)
+    }
+  }
+
+  static tMissileTouch(globals, missile, other) {
+    if (missile == null) return
+    if (other == missile.get("owner", null)) return
+
+    if (Engine.pointContents(missile.get("origin", [0, 0, 0])) == Contents.SKY) {
+      Engine.removeEntity(missile)
+      return
+    }
+
+    var owner = missile.get("owner", null)
+    if (other != null && other.get("takedamage", DamageValues.NO) != DamageValues.NO) {
+      var damage = 100 + Engine.random() * 20
+      if (other.get("classname", "") == "monster_shambler") {
+        damage = damage * 0.5
+      }
+      CombatModule.tDamage(globals, other, missile, owner == null ? missile : owner, damage)
+    }
+
+    CombatModule.tRadiusDamage(globals, missile, owner, 120, other)
+    WeaponsModule._emitExplosion(missile.get("origin", [0, 0, 0]))
+    Engine.removeEntity(missile)
+  }
+
   static precache(globals) {
     for (path in _WEAPON_SOUNDS) {
       Engine.precacheSound(path)
@@ -36,12 +433,6 @@ class WeaponsModule {
       _AMMO_BITS = Engine.bitOrMany([Items.SHELLS, Items.NAILS, Items.ROCKETS, Items.CELLS])
     }
     return _AMMO_BITS
-  }
-
-  static _stubWarn(name) {
-    if (_STUB_WARNED.containsKey(name)) return
-    _STUB_WARNED[name] = true
-    Engine.log("WeaponsModule.%s is not yet fully implemented." % name)
   }
 
   static _callPlayerAnimation(globals, player, animation) {
@@ -453,35 +844,178 @@ class WeaponsModule {
   }
 
   static startAxeAttack(globals, player) {
-    WeaponsModule._stubWarn("startAxeAttack")
+    var origin = WeaponsModule._eyeOrigin(player)
+    var vectors = WeaponsModule._makeVectors(player.get("v_angle", [0, 0, 0]))
+    var forward = vectors["forward"]
+    var end = WeaponsModule._vectorAdd(origin, WeaponsModule._vectorScale(forward, 64))
+    var trace = Engine.traceLine(origin, end, false, player)
+    if (trace == null || !trace.containsKey("fraction") || trace["fraction"] >= 1) return
+
+    var impact = WeaponsModule._vectorSub(trace.containsKey("endpos") ? trace["endpos"] : end, WeaponsModule._vectorScale(forward, 4))
+    var target = trace.containsKey("entity") ? trace["entity"] : null
+
+    if (target != null && target.get("takedamage", DamageValues.NO) != DamageValues.NO) {
+      target.set("axhitme", 1)
+      WeaponsModule._spawnBlood(impact, [0, 0, 0], 20)
+      CombatModule.tDamage(globals, target, player, player, 20)
+    } else {
+      Engine.playSound(player, Channels.WEAPON, "player/axhit2.wav", 1, Attenuations.NORMAL)
+      WeaponsModule._emitGunshot(impact)
+    }
   }
 
   static fireShotgun(globals, player) {
-    WeaponsModule._stubWarn("fireShotgun")
+    Engine.playSound(player, Channels.WEAPON, "weapons/guncock.wav", 1, Attenuations.NORMAL)
+    player.set("punchangle", [-2, 0, 0])
+    var ammo = player.get("ammo_shells", 0) - 1
+    if (ammo < 0) ammo = 0
+    player.set("ammo_shells", ammo)
+    player.set("currentammo", ammo)
+
+    var dir = WeaponsModule._aimDirection(player, 100000)
+    WeaponsModule._fireBullets(globals, player, 6, dir, [0.04, 0.04, 0])
   }
 
   static fireSuperShotgun(globals, player) {
-    WeaponsModule._stubWarn("fireSuperShotgun")
+    if (player.get("currentammo", 0) == 1) {
+      WeaponsModule.fireShotgun(globals, player)
+      return
+    }
+
+    Engine.playSound(player, Channels.WEAPON, "weapons/shotgn2.wav", 1, Attenuations.NORMAL)
+    player.set("punchangle", [-4, 0, 0])
+    var ammo = player.get("ammo_shells", 0) - 2
+    if (ammo < 0) ammo = 0
+    player.set("ammo_shells", ammo)
+    player.set("currentammo", ammo)
+
+    var dir = WeaponsModule._aimDirection(player, 100000)
+    WeaponsModule._fireBullets(globals, player, 14, dir, [0.14, 0.08, 0])
   }
 
   static startNailgunAttack(globals, player) {
-    WeaponsModule._stubWarn("startNailgunAttack")
+    WeaponsModule._fireSpikes(globals, player)
   }
 
   static startSuperNailgunAttack(globals, player) {
-    WeaponsModule._stubWarn("startSuperNailgunAttack")
+    WeaponsModule._fireSpikes(globals, player)
   }
 
   static fireGrenade(globals, player) {
-    WeaponsModule._stubWarn("fireGrenade")
+    var ammo = player.get("ammo_rockets", 0) - 1
+    if (ammo < 0) ammo = 0
+    player.set("ammo_rockets", ammo)
+    player.set("currentammo", ammo)
+
+    Engine.playSound(player, Channels.WEAPON, "weapons/grenade.wav", 1, Attenuations.NORMAL)
+    player.set("punchangle", [-2, 0, 0])
+
+    var grenade = Engine.spawnEntity()
+    grenade.set("classname", "grenade")
+    grenade.set("owner", player)
+    grenade.set("movetype", MoveTypes.BOUNCE)
+    grenade.set("solid", SolidTypes.BBOX)
+
+    var angles = player.get("v_angle", [0, 0, 0])
+    var vectors = WeaponsModule._makeVectors(angles)
+
+    var velocity
+    if (angles[0] != 0) {
+      var forward = WeaponsModule._vectorScale(vectors["forward"], 600)
+      var up = WeaponsModule._vectorScale(vectors["up"], 200)
+      var randomRight = WeaponsModule._vectorScale(vectors["right"], WeaponsModule._cRandom() * 10)
+      var randomUp = WeaponsModule._vectorScale(vectors["up"], WeaponsModule._cRandom() * 10)
+      velocity = WeaponsModule._vectorAdd(WeaponsModule._vectorAdd(forward, up), WeaponsModule._vectorAdd(randomRight, randomUp))
+    } else {
+      velocity = WeaponsModule._vectorScale(WeaponsModule._aimDirection(player, 10000), 600)
+      velocity[2] = 200
+    }
+
+    grenade.set("velocity", velocity)
+    grenade.set("avelocity", [300, 300, 300])
+    grenade.set("angles", Engine.vectorToAngles(velocity))
+    grenade.set("touch", "WeaponsModule.grenadeTouch")
+    grenade.set("think", "WeaponsModule.grenadeExplode")
+    var detonate = Engine.time() + 2.5
+    grenade.set("nextthink", detonate)
+    Engine.scheduleThink(grenade, "WeaponsModule.grenadeExplode", 2.5)
+
+    Engine.setModel(grenade, "progs/grenade.mdl")
+    Engine.setSize(grenade, [0, 0, 0], [0, 0, 0])
+    Engine.setOrigin(grenade, player.get("origin", [0, 0, 0]))
   }
 
   static fireRocket(globals, player) {
-    WeaponsModule._stubWarn("fireRocket")
+    var ammo = player.get("ammo_rockets", 0) - 1
+    if (ammo < 0) ammo = 0
+    player.set("ammo_rockets", ammo)
+    player.set("currentammo", ammo)
+
+    Engine.playSound(player, Channels.WEAPON, "weapons/sgun1.wav", 1, Attenuations.NORMAL)
+    player.set("punchangle", [-2, 0, 0])
+
+    var missile = Engine.spawnEntity()
+    missile.set("classname", "missile")
+    missile.set("owner", player)
+    missile.set("movetype", MoveTypes.FLYMISSILE)
+    missile.set("solid", SolidTypes.BBOX)
+
+    var dir = WeaponsModule._aimDirection(player, 1000)
+    var velocity = WeaponsModule._vectorScale(dir, 1000)
+    missile.set("velocity", velocity)
+    missile.set("angles", Engine.vectorToAngles(velocity))
+
+    missile.set("touch", "WeaponsModule.tMissileTouch")
+    missile.set("think", "SubsModule.subRemove")
+    var removeTime = Engine.time() + 5
+    missile.set("nextthink", removeTime)
+    Engine.scheduleThink(missile, "SubsModule.subRemove", 5)
+
+    var vectors = WeaponsModule._makeVectors(player.get("v_angle", [0, 0, 0]))
+    var forward = vectors["forward"]
+    var origin = WeaponsModule._vectorAdd(player.get("origin", [0, 0, 0]), WeaponsModule._vectorAdd(WeaponsModule._vectorScale(forward, 8), [0, 0, 16]))
+
+    Engine.setModel(missile, "progs/missile.mdl")
+    Engine.setSize(missile, [0, 0, 0], [0, 0, 0])
+    Engine.setOrigin(missile, origin)
   }
 
   static startLightningAttack(globals, player) {
-    WeaponsModule._stubWarn("startLightningAttack")
+    if (player.get("ammo_cells", 0) < 1) {
+      player.set("weapon", WeaponsModule.bestWeapon(globals, player))
+      WeaponsModule.setCurrentAmmo(globals, player)
+      return
+    }
+
+    if (player.get("waterlevel", 0) > 1) {
+      var cells = player.get("ammo_cells", 0)
+      player.set("ammo_cells", 0)
+      WeaponsModule.setCurrentAmmo(globals, player)
+      CombatModule.tRadiusDamage(globals, player, player, 35 * cells, globals.world)
+      return
+    }
+
+    if (player.get("t_width", 0.0) < Engine.time()) {
+      Engine.playSound(player, Channels.WEAPON, "weapons/lhit.wav", 1, Attenuations.NORMAL)
+      player.set("t_width", Engine.time() + 0.6)
+    }
+
+    player.set("punchangle", [-2, 0, 0])
+    var cells = player.get("ammo_cells", 0) - 1
+    if (cells < 0) cells = 0
+    player.set("ammo_cells", cells)
+    player.set("currentammo", cells)
+
+    var start = WeaponsModule._eyeOrigin(player)
+    var vectors = WeaponsModule._makeVectors(player.get("v_angle", [0, 0, 0]))
+    var forward = vectors["forward"]
+    var end = WeaponsModule._vectorAdd(start, WeaponsModule._vectorScale(forward, 600))
+    var trace = Engine.traceLine(start, end, true, player)
+    var impact = trace != null && trace.containsKey("endpos") ? trace["endpos"] : end
+
+    WeaponsModule._emitLightning(player, start, impact)
+    var damageEnd = WeaponsModule._vectorAdd(impact, WeaponsModule._vectorScale(forward, 4))
+    WeaponsModule._lightningDamage(globals, player, player.get("origin", [0, 0, 0]), damageEnd, 30)
   }
 }
 
