@@ -455,6 +455,35 @@ class ClientModule {
     Engine.setTriggerTouch(trigger, "Client.changeLevelTouch")
   }
 
+  static infoIntermission(globals, entity) {
+    // Marker entity used purely for camera placement during intermissions.
+    // QuakeC definition is intentionally empty, so we mirror that behavior.
+  }
+
+  static infoPlayerStart(globals, entity) {
+    // Regular single-player start position. No setup needed beyond the map
+    // data, matching the QuakeC stub definition.
+  }
+
+  static infoPlayerStart2(globals, entity) {
+    // Alternate start location used when returning to the start map between
+    // episodes. Provided for parity with the QuakeC stub implementation.
+  }
+
+  static testPlayerStart(globals, entity) {
+    // Region-based start marker created by level editors. Left intentionally
+    // empty in QuakeC, so no additional logic is required here.
+  }
+
+  static infoPlayerDeathmatch(globals, entity) {
+    // Multiplayer spawn point. The QuakeC version is a stub, so we simply
+    // expose the entry point for completeness.
+  }
+
+  static infoPlayerCoop(globals, entity) {
+    // Cooperative spawn point. QuakeC treats this as a no-op definition.
+  }
+
   static respawn(globals, player) {
     if (globals.coop > 0) {
       WorldModule.copyToBodyQueue(globals, player)
