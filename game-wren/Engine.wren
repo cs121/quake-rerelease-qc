@@ -73,6 +73,42 @@ class Engine {
     }
   }
 
+  static broadcastPrint(messageId, args) {
+    _requireHost("broadcastPrint", [messageId, args])
+  }
+
+  static playSound(entity, channel, sample, volume, attenuation) {
+    _requireHost("playSound", [entity, channel, sample, volume, attenuation])
+  }
+
+  static applyDamage(target, inflictor, attacker, amount) {
+    _requireHost("applyDamage", [target, inflictor, attacker, amount])
+  }
+
+  static useTargets(entity, activator) {
+    _requireHost("useTargets", [entity, activator])
+  }
+
+  static initTrigger(entity) {
+    _requireHost("initTrigger", [entity])
+  }
+
+  static setTriggerTouch(entity, handler) {
+    _requireHost("setTriggerTouch", [entity, handler])
+  }
+
+  static clearTriggerTouch(entity) {
+    _requireHost("clearTriggerTouch", [entity])
+  }
+
+  static scheduleThink(entity, handler, delay) {
+    _requireHost("scheduleThink", [entity, handler, delay])
+  }
+
+  static objError(message) {
+    _requireHost("objError", [message])
+  }
+
   static bitAnd(a, b) {
     return _requireHost("bitAnd", [a, b])
   }

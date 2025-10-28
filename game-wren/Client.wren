@@ -86,6 +86,15 @@ class ClientModule {
     player.set("armortype", globals.spawnParm(9) * 0.01)
   }
 
+  static clientConnect(globals, player) {
+    var name = player.get("netname", "")
+    Engine.broadcastPrint("$qc_entered", [name])
+
+    if (globals.intermissionRunning > 0) {
+      exitIntermission(globals)
+    }
+  }
+
   static findIntermission(globals) {
     var spots = Engine.findAll(globals.world, "info_intermission")
     if (spots != null && spots.count > 0) {
@@ -181,6 +190,34 @@ class ClientModule {
     } else if (globals.nextMap != null) {
       Engine.changeLevel(globals.nextMap)
     }
+  }
+
+  static changeLevelTouch(globals, trigger, toucher) {
+    if (toucher == null) return
+    if (toucher.get("classname", "") != "player") return
+
+    var noExit = Engine.cvar("noexit")
+    if (noExit == 1 || (noExit == 2 && globals.mapName != "start")) {
+      Engine.applyDamage(toucher, trigger, trigger, 50000)
+      return
+    }
+
+    if (globals.coop > 0 || globals.deathmatch > 0) {
+      var name = toucher.get("netname", "")
+      Engine.broadcastPrint("$qc_exited", [name])
+    }
+
+    globals.nextMap = trigger.get("map", null)
+    Engine.useTargets(trigger, toucher)
+
+    var spawnFlags = trigger.get("spawnflags", 0)
+    if (Engine.bitAnd(spawnFlags, 1) != 0 && globals.deathmatch == 0) {
+      gotoNextMap(globals)
+      return
+    }
+
+    Engine.clearTriggerTouch(trigger)
+    Engine.scheduleThink(trigger, "Client.executeChangeLevel", 0.1)
   }
 
   static exitIntermission(globals) {
@@ -327,5 +364,19 @@ class ClientModule {
       Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
       Engine.writeString(MessageTypes.ALL, "ACH_FIND_E4M8", null)
     }
+  }
+
+  static triggerChangeLevel(globals, trigger) {
+    var mapName = trigger.get("map", null)
+    if (mapName == null || mapName == "") {
+      Engine.objError("changelevel trigger doesn't have map")
+      return
+    }
+
+    trigger.set("netname", "changelevel")
+    trigger.set("killstring", "$qc_ks_tried_leave")
+
+    Engine.initTrigger(trigger)
+    Engine.setTriggerTouch(trigger, "Client.changeLevelTouch")
   }
 }
