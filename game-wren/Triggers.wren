@@ -3,7 +3,7 @@
 // mission logic function when running under the Wren gameplay layer.
 
 import "./Engine" for Engine
-import "./Globals" for SolidTypes, DamageValues, Channels, Attenuations
+import "./Globals" for SolidTypes, MoveTypes, DamageValues, Channels, Attenuations
 import "./Globals" for MessageTypes, ServiceCodes, PlayerFlags
 import "./Subs" for SubsModule
 import "./Combat" for CombatModule
@@ -306,8 +306,7 @@ class TriggersModule {
 
     SubsModule.useTargets(globals, trigger, other)
 
-    TriggersModule._playTeleportSound(globals, trigger)
-    Engine.spawnTeleportFog(other.get("origin", [0, 0, 0]))
+    TriggersModule.spawnTFog(globals, other.get("origin", [0, 0, 0]))
 
     var target = TriggersModule._findTeleportTarget(globals, trigger)
     if (target == null) {
@@ -320,8 +319,8 @@ class TriggersModule {
     var vectors = Engine.makeVectors(destAngles)
     var forward = (vectors != null && vectors.containsKey("forward")) ? vectors["forward"] : [0, 0, 1]
     var fogOrigin = TriggersModule._vectorAdd(targetOrigin, TriggersModule._vectorScale(forward, 32))
-    Engine.spawnTeleportFog(fogOrigin)
-    Engine.spawnTeleportDeath(targetOrigin, other, other.get("mins", [0, 0, 0]), other.get("maxs", [0, 0, 0]))
+    TriggersModule.spawnTFog(globals, fogOrigin)
+    TriggersModule.spawnTDeath(globals, targetOrigin, other)
 
     Engine.setOrigin(other, targetOrigin)
     other.set("origin", targetOrigin)
@@ -535,15 +534,73 @@ class TriggersModule {
   }
 
   static playTeleport(globals, trigger) {
-    TriggersModule._stubWarn("playTeleport")
+    if (trigger == null) return
+    TriggersModule._playTeleportSound(globals, trigger)
+    Engine.removeEntity(trigger)
   }
 
   static spawnTFog(globals, origin) {
     if (origin == null) origin = [0, 0, 0]
     Engine.spawnTeleportFog(origin)
+
+    var temp = Engine.spawnEntity()
+    temp.set("classname", "teleport_sound")
+    temp.set("solid", SolidTypes.NOT)
+    temp.set("movetype", MoveTypes.NONE)
+    temp.set("origin", origin)
+    temp.set("think", "TriggersModule.playTeleport")
+    temp.set("nextthink", Engine.time() + 0.2)
+    Engine.scheduleThink(temp, "TriggersModule.playTeleport", 0.2)
+  }
+
+  static tdeathTouch(globals, trigger, other) {
+    if (trigger == null) return
+    if (other == null) return
+
+    var owner = trigger.get("owner", null)
+    if (other == owner) return
+
+    if (other.get("classname", "") == "player") {
+      if (other.get("invincible_finished", 0.0) > Engine.time()) {
+        trigger.set("classname", "teledeath2")
+      }
+
+      if (owner != null && owner.get("classname", "") != "player") {
+        CombatModule.tDamage(globals, owner, trigger, trigger, 50000)
+        return
+      }
+    }
+
+    if (other.get("health", 0) > 0) {
+      CombatModule.tDamage(globals, other, trigger, trigger, 50000)
+    }
   }
 
   static spawnTDeath(globals, origin, owner) {
-    TriggersModule._stubWarn("spawnTDeath")
+    if (origin == null) origin = [0, 0, 0]
+    if (owner == null) return
+
+    var death = Engine.spawnEntity()
+    death.set("classname", "teledeath")
+    death.set("movetype", MoveTypes.NONE)
+    death.set("solid", SolidTypes.TRIGGER)
+    death.set("angles", [0, 0, 0])
+
+    var mins = owner.get("mins", [0, 0, 0])
+    var maxs = owner.get("maxs", [0, 0, 0])
+    var expand = [1, 1, 1]
+    var deathMins = [mins[0] - expand[0], mins[1] - expand[1], mins[2] - expand[2]]
+    var deathMaxs = [maxs[0] + expand[0], maxs[1] + expand[1], maxs[2] + expand[2]]
+    Engine.setSize(death, deathMins, deathMaxs)
+    Engine.setOrigin(death, origin)
+
+    death.set("touch", "TriggersModule.tdeathTouch")
+    Engine.setTriggerTouch(death, "TriggersModule.tdeathTouch")
+    death.set("think", "SubsModule.subRemove")
+    death.set("nextthink", Engine.time() + 0.2)
+    Engine.scheduleThink(death, "SubsModule.subRemove", 0.2)
+    death.set("owner", owner)
+
+    globals.forceRetouch = 2
   }
 }

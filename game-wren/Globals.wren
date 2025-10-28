@@ -89,6 +89,13 @@ class MoveTypes {
   static GIB { 11 }
 }
 
+class MoverStates {
+  static TOP { 0 }
+  static BOTTOM { 1 }
+  static UP { 2 }
+  static DOWN { 3 }
+}
+
 class DeadFlags {
   static NO { 0 }
   static DYING { 1 }
