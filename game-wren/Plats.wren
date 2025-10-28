@@ -154,8 +154,10 @@ class PlatsModule {
       PlatsModule.platGoUp(globals, plat)
     } else if (state == MoverStates.TOP) {
       var ltime = plat.get("ltime", Engine.time())
-      var delay = 1.0
-      plat.set("nextthink", ltime + delay)
+      var targetTime = ltime + 1.0
+      var delay = targetTime - Engine.time()
+      if (delay < 0) delay = 0
+      plat.set("nextthink", targetTime)
       plat.set("think", "PlatsModule.platGoDown")
       Engine.scheduleThink(plat, "PlatsModule.platGoDown", delay)
     }
