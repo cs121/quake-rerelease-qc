@@ -25,12 +25,16 @@ class Items {
 class Channels {
   static AUTO { 0 }
   static WEAPON { 1 }
-  static BODY { 2 }
+  static VOICE { 2 }
+  static ITEM { 3 }
+  static BODY { 4 }
 }
 
 class Attenuations {
   static NONE { 0 }
   static NORMAL { 1 }
+  static IDLE { 2 }
+  static STATIC { 3 }
 }
 
 class MessageTypes {
@@ -50,6 +54,8 @@ class ServiceCodes {
 
 class DamageValues {
   static NO { 0 }
+  static YES { 1 }
+  static AIM { 2 }
 }
 
 class SolidTypes {
@@ -64,7 +70,14 @@ class SolidTypes {
 class MoveTypes {
   static NONE { 0 }
   static WALK { 3 }
+  static STEP { 4 }
+  static FLY { 5 }
   static TOSS { 6 }
+  static PUSH { 7 }
+  static NOCLIP { 8 }
+  static FLYMISSILE { 9 }
+  static BOUNCE { 10 }
+  static GIB { 11 }
 }
 
 class DeadFlags {
@@ -72,6 +85,38 @@ class DeadFlags {
   static DYING { 1 }
   static DEAD { 2 }
   static RESPAWNABLE { 3 }
+}
+
+class PlayerFlags {
+  static FLY { 1 }
+  static SWIM { 2 }
+  static CLIENT { 8 }
+  static INWATER { 16 }
+  static MONSTER { 32 }
+  static GODMODE { 64 }
+  static NOTARGET { 128 }
+  static ITEM { 256 }
+  static ONGROUND { 512 }
+  static PARTIALGROUND { 1024 }
+  static WATERJUMP { 2048 }
+  static JUMPRELEASED { 4096 }
+}
+
+class Effects {
+  static MUZZLEFLASH { 2 }
+  static QUADLIGHT { 16 }
+  static PENTALIGHT { 32 }
+}
+
+class Teams {
+  static NONE { -1 }
+  static MONSTERS { 0 }
+  static HUMANS { 1 }
+}
+
+class HullVectors {
+  static PLAYER_MIN { [-16, -16, -24] }
+  static PLAYER_MAX { [16, 16, 32] }
 }
 
 class Contents {
@@ -111,6 +156,8 @@ class GameGlobals {
     lastSpawn = null
     intermissionRunning = 0.0
     intermissionExitTime = 0.0
+    modelIndexPlayer = 0
+    modelIndexEyes = 0
   }
 
   setSpawnParm(index, value) {
