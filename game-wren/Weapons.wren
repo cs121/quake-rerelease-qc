@@ -53,6 +53,14 @@ class WeaponsModule {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
   }
 
+  static _vectorCross(a, b) {
+    return [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    ]
+  }
+
   static _cRandom() {
     return Engine.random() * 2 - 1
   }
@@ -98,8 +106,16 @@ class WeaponsModule {
     Engine.spawnParticles(origin, velocity, color, count)
   }
 
-  static _spawnBlood(origin, velocity, damage) {
+  static spawnBlood(origin, velocity, damage) {
     WeaponsModule._spawnParticles(origin, velocity, 73, (damage * 2).ceil)
+  }
+
+  static _spawnBlood(origin, velocity, damage) {
+    WeaponsModule.spawnBlood(origin, velocity, damage)
+  }
+
+  static spawnChunk(origin, velocity) {
+    WeaponsModule._spawnParticles(origin, WeaponsModule._vectorScale(velocity, 0.02), 0, 10)
   }
 
   static _emitGunshot(origin) {
@@ -140,6 +156,78 @@ class WeaponsModule {
       var amount = damageMap[entity]
       CombatModule.tDamage(globals, entity, inflictor, attacker, amount)
     }
+  }
+
+  static _perpendicularBasis(direction) {
+    var forward = WeaponsModule._vectorNormalize(direction)
+    if (WeaponsModule._vectorLength(forward) == 0) {
+      forward = [0, 0, 1]
+    }
+
+    var temp = [0, 0, 1]
+    if (WeaponsModule._vectorLength(WeaponsModule._vectorCross(forward, temp)) == 0) {
+      temp = [0, 1, 0]
+    }
+
+    var right = WeaponsModule._vectorNormalize(WeaponsModule._vectorCross(forward, temp))
+    var up = WeaponsModule._vectorNormalize(WeaponsModule._vectorCross(right, forward))
+    return {"forward": forward, "right": right, "up": up}
+  }
+
+  static _wallVelocity(entity, planeNormal) {
+    var velocity = entity.get("velocity", [0, 0, 0])
+    var basis = WeaponsModule._perpendicularBasis(velocity)
+    var dir = WeaponsModule._vectorAdd(
+      basis["forward"],
+      WeaponsModule._vectorAdd(
+        WeaponsModule._vectorScale(basis["up"], WeaponsModule._cRandom()),
+        WeaponsModule._vectorScale(basis["right"], WeaponsModule._cRandom())
+      )
+    )
+    dir = WeaponsModule._vectorNormalize(dir)
+
+    if (planeNormal != null) {
+      dir = WeaponsModule._vectorAdd(dir, WeaponsModule._vectorScale(planeNormal, 2))
+    }
+
+    return WeaponsModule._vectorScale(dir, 200)
+  }
+
+  static spawnTouchBlood(entity, damage) {
+    if (entity == null) return
+    var origin = entity.get("origin", [0, 0, 0])
+    var velocity = entity.get("velocity", [0, 0, 0])
+    var end = WeaponsModule._vectorAdd(origin, WeaponsModule._vectorScale(velocity, 0.05))
+    var trace = Engine.traceLine(origin, end, false, entity)
+    var plane = trace != null && trace.containsKey("planeNormal") ? trace["planeNormal"] : null
+
+    var impactVelocity = WeaponsModule._vectorScale(WeaponsModule._wallVelocity(entity, plane), 0.2)
+    var impactOrigin = WeaponsModule._vectorAdd(origin, WeaponsModule._vectorScale(impactVelocity, 0.01))
+    WeaponsModule.spawnBlood(impactOrigin, impactVelocity, damage)
+  }
+
+  static spawnMeatSpray(globals, owner, origin, velocity) {
+    if (origin == null) return
+
+    var spray = Engine.spawnEntity()
+    spray.set("owner", owner)
+    spray.set("movetype", MoveTypes.BOUNCE)
+    spray.set("solid", SolidTypes.NOT)
+    spray.set("classname", "meat")
+
+    var vel = velocity == null ? [0, 0, 0] : velocity
+    var adjusted = [vel[0], vel[1], vel[2] + 250 + 50 * Engine.random()]
+    spray.set("velocity", adjusted)
+    spray.set("avelocity", [3000, 1000, 2000])
+
+    spray.set("think", "SubsModule.subRemove")
+    var removeTime = Engine.time() + 1
+    spray.set("nextthink", removeTime)
+    Engine.scheduleThink(spray, "SubsModule.subRemove", 1)
+
+    Engine.setModel(spray, "progs/zom_gib.mdl")
+    Engine.setSize(spray, [0, 0, 0], [0, 0, 0])
+    Engine.setOrigin(spray, origin)
   }
 
   static _aimDirection(player, distance) {
@@ -312,7 +400,7 @@ class WeaponsModule {
   static _spikeDamage(globals, spike, other, damage, isSuper) {
     var owner = spike.get("owner", null)
     if (other.get("takedamage", DamageValues.NO) != DamageValues.NO) {
-      WeaponsModule._spawnBlood(spike.get("origin", [0, 0, 0]), spike.get("velocity", [0, 0, 0]), damage)
+      WeaponsModule.spawnTouchBlood(spike, damage)
       CombatModule.tDamage(globals, other, spike, owner == null ? spike : owner, damage)
     } else {
       WeaponsModule._emitSpike(spike.get("origin", [0, 0, 0]), isSuper)
