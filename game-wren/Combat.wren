@@ -5,6 +5,7 @@ import "./Engine" for Engine
 import "./Globals" for MoveTypes, PlayerFlags, Items, ServiceCodes, MessageTypes
 import "./Globals" for DamageValues, Channels, Attenuations
 import "./Client" for ClientModule
+import "./Subs" for SubsModule
 
 class CombatModule {
   static _vectorAdd(a, b) {
@@ -121,7 +122,7 @@ class CombatModule {
     if (targetName == null || targetName == "") return
 
     globals.activator = monster.get("enemy", null)
-    Engine.useTargets(monster, globals.activator)
+    SubsModule.useTargets(globals, monster, globals.activator)
   }
 
   static killed(globals, target, attacker) {
