@@ -17,8 +17,16 @@ class Engine {
     _requireHost("precacheSound", [path])
   }
 
+  static precacheSound2(path) {
+    _requireHost("precacheSound2", [path])
+  }
+
   static precacheModel(path) {
     _requireHost("precacheModel", [path])
+  }
+
+  static precacheModel2(path) {
+    _requireHost("precacheModel2", [path])
   }
 
   static lightstyle(index, pattern) {
@@ -49,6 +57,10 @@ class Engine {
     return _requireHost("spawnEntity", [])
   }
 
+  static makeStatic(entity) {
+    _requireHost("makeStatic", [entity])
+  }
+
   static removeEntity(entity) {
     _requireHost("removeEntity", [entity])
   }
@@ -69,28 +81,44 @@ class Engine {
     _requireHost("changeLevel", [mapName])
   }
 
-  static writeByte(channel, value, entity) {
+  static _writeMessage(name, channel, value, entity) {
     if (entity == null) {
-      _requireHost("writeByte", [channel, value])
+      _requireHost(name, [channel, value])
     } else {
-      _requireHost("writeByte", [channel, value, entity])
+      _requireHost(name, [channel, value, entity])
     }
+  }
+
+  static writeByte(channel, value, entity) {
+    _writeMessage("writeByte", channel, value, entity)
+  }
+
+  static writeChar(channel, value, entity) {
+    _writeMessage("writeChar", channel, value, entity)
+  }
+
+  static writeShort(channel, value, entity) {
+    _writeMessage("writeShort", channel, value, entity)
+  }
+
+  static writeLong(channel, value, entity) {
+    _writeMessage("writeLong", channel, value, entity)
   }
 
   static writeString(channel, value, entity) {
-    if (entity == null) {
-      _requireHost("writeString", [channel, value])
-    } else {
-      _requireHost("writeString", [channel, value, entity])
-    }
+    _writeMessage("writeString", channel, value, entity)
   }
 
   static writeCoord(channel, value, entity) {
-    if (entity == null) {
-      _requireHost("writeCoord", [channel, value])
-    } else {
-      _requireHost("writeCoord", [channel, value, entity])
-    }
+    _writeMessage("writeCoord", channel, value, entity)
+  }
+
+  static writeAngle(channel, value, entity) {
+    _writeMessage("writeAngle", channel, value, entity)
+  }
+
+  static writeEntity(channel, value, entity) {
+    _writeMessage("writeEntity", channel, value, entity)
   }
 
   static broadcastPrint(messageId, args) {
@@ -173,6 +201,10 @@ class Engine {
     _requireHost("playerPrint", [entity, messageId, args])
   }
 
+  static localSound(entity, sample) {
+    _requireHost("localSound", [entity, sample])
+  }
+
   static bitAnd(a, b) {
     return _requireHost("bitAnd", [a, b])
   }
@@ -201,8 +233,36 @@ class Engine {
     _requireHost("setSize", [entity, mins, maxs])
   }
 
+  static moveToGoal(entity, step) {
+    _requireHost("moveToGoal", [entity, step])
+  }
+
+  static walkMove(entity, yaw, distance) {
+    return _requireHost("walkMove", [entity, yaw, distance])
+  }
+
+  static dropToFloor(entity) {
+    return _requireHost("dropToFloor", [entity])
+  }
+
+  static checkBottom(entity) {
+    return _requireHost("checkBottom", [entity])
+  }
+
   static findRadius(origin, radius) {
     return _requireHost("findRadius", [origin, radius])
+  }
+
+  static checkClient() {
+    return _requireHost("checkClient", [])
+  }
+
+  static find(start, field, value) {
+    return _requireHost("find", [start, field, value])
+  }
+
+  static nextEntity(entity) {
+    return _requireHost("nextEntity", [entity])
   }
 
   static traceLine(start, end, ignoreMonsters, ignoreEntity) {
@@ -239,6 +299,66 @@ class Engine {
 
   static spawnTeleportDeath(origin, owner, mins, maxs) {
     _requireHost("spawnTeleportDeath", [origin, owner, mins, maxs])
+  }
+
+  static walkPathToGoal(entity, distance, goal) {
+    return _requireHost("walkPathToGoal", [entity, distance, goal])
+  }
+
+  static botMoveToPoint(bot, point) {
+    return _requireHost("botMoveToPoint", [bot, point])
+  }
+
+  static botFollowEntity(bot, goal) {
+    return _requireHost("botFollowEntity", [bot, goal])
+  }
+
+  static checkPlayerEXFlags(player) {
+    return _requireHost("checkPlayerEXFlags", [player])
+  }
+
+  static checkExtension(name) {
+    return _requireHost("checkExtension", [name])
+  }
+
+  static drawPoint(point, colormap, lifetime, depthTest) {
+    _requireHost("drawPoint", [point, colormap, lifetime, depthTest])
+  }
+
+  static drawLine(start, end, colormap, lifetime, depthTest) {
+    _requireHost("drawLine", [start, end, colormap, lifetime, depthTest])
+  }
+
+  static drawArrow(start, end, colormap, size, lifetime, depthTest) {
+    _requireHost("drawArrow", [start, end, colormap, size, lifetime, depthTest])
+  }
+
+  static drawRay(start, direction, length, colormap, size, lifetime, depthTest) {
+    _requireHost("drawRay", [start, direction, length, colormap, size, lifetime, depthTest])
+  }
+
+  static drawCircle(origin, radius, colormap, lifetime, depthTest) {
+    _requireHost("drawCircle", [origin, radius, colormap, lifetime, depthTest])
+  }
+
+  static drawBounds(mins, maxs, colormap, lifetime, depthTest) {
+    _requireHost("drawBounds", [mins, maxs, colormap, lifetime, depthTest])
+  }
+
+  static drawWorldText(text, origin, size, lifetime, depthTest) {
+    _requireHost("drawWorldText", [text, origin, size, lifetime, depthTest])
+  }
+
+  static drawSphere(origin, radius, colormap, lifetime, depthTest) {
+    _requireHost("drawSphere", [origin, radius, colormap, lifetime, depthTest])
+  }
+
+  static drawCylinder(origin, halfHeight, radius, colormap, lifetime, depthTest) {
+    _requireHost("drawCylinder", [origin, halfHeight, radius, colormap, lifetime, depthTest])
+  }
+
+  static finaleFinished() {
+    return _requireHost("finaleFinished", [])
   }
 
   static time() {
