@@ -175,6 +175,7 @@ class GameGlobals {
     modelIndexPlayer = 0
     modelIndexEyes = 0
     damageAttacker = null
+    forceRetouch = 0.0
   }
 
   setSpawnParm(index, value) {

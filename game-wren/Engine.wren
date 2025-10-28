@@ -97,6 +97,10 @@ class Engine {
     _requireHost("centerPrint", [entity, message])
   }
 
+  static ambientSound(origin, sample, volume, attenuation) {
+    _requireHost("ambientSound", [origin, sample, volume, attenuation])
+  }
+
   static applyDamage(target, inflictor, attacker, amount) {
     _requireHost("applyDamage", [target, inflictor, attacker, amount])
   }
