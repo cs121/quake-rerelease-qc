@@ -42,6 +42,8 @@ class GameGlobals {
     resetFlag = false
     msgEntity = null
     bodyQueueHead = null
+    startingServerFlags = 0.0
+    lastSpawn = null
   }
 
   setSpawnParm(index, value) {
