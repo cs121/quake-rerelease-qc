@@ -2,7 +2,7 @@
 // Port of the essential client management and rules logic from client.qc.
 
 import "./Engine" for Engine
-import "./Globals" for GameGlobals, Items
+import "./Globals" for GameGlobals, Items, MessageTypes, ServiceCodes, DamageValues, SolidTypes, MoveTypes
 import "./Entity" for GameEntity
 
 class ClientModule {
@@ -153,7 +153,7 @@ class ClientModule {
     var nextThink = trigger.get("nextthink", 0.0)
     if (nextThink < now) {
       trigger.set("nextthink", now + 0.1)
-      Engine.executeChangeLevel(trigger)
+      executeChangeLevel(globals)
     }
   }
 
@@ -172,6 +172,160 @@ class ClientModule {
     if (fragLimit != 0 && player.get("frags", 0) >= fragLimit) {
       nextLevel(globals)
       return
+    }
+  }
+
+  static gotoNextMap(globals) {
+    if (Engine.cvar("samelevel") != 0) {
+      Engine.changeLevel(globals.mapName)
+    } else if (globals.nextMap != null) {
+      Engine.changeLevel(globals.nextMap)
+    }
+  }
+
+  static exitIntermission(globals) {
+    if (globals.deathmatch > 0) {
+      gotoNextMap(globals)
+      return
+    }
+
+    globals.intermissionExitTime = Engine.time() + 1
+    globals.intermissionRunning = globals.intermissionRunning + 1
+
+    var worldModel = globals.world.get("model", "")
+
+    if (globals.intermissionRunning == 2) {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.CDTRACK, null)
+      Engine.writeByte(MessageTypes.ALL, 2, null)
+      Engine.writeByte(MessageTypes.ALL, 3, null)
+
+      if (worldModel == "maps/e1m7.bsp") {
+        if (Engine.cvar("registered") == 0) {
+          Engine.writeByte(MessageTypes.ALL, ServiceCodes.FINALE, null)
+          Engine.writeString(MessageTypes.ALL, "$qc_finale_e1_shareware", null)
+        } else {
+          Engine.writeByte(MessageTypes.ALL, ServiceCodes.FINALE, null)
+          Engine.writeString(MessageTypes.ALL, "$qc_finale_e1", null)
+        }
+        return
+      } else if (worldModel == "maps/e2m6.bsp") {
+        Engine.writeByte(MessageTypes.ALL, ServiceCodes.FINALE, null)
+        Engine.writeString(MessageTypes.ALL, "$qc_finale_e2", null)
+        return
+      } else if (worldModel == "maps/e3m6.bsp") {
+        Engine.writeByte(MessageTypes.ALL, ServiceCodes.FINALE, null)
+        Engine.writeString(MessageTypes.ALL, "$qc_finale_e3", null)
+        return
+      } else if (worldModel == "maps/e4m7.bsp") {
+        Engine.writeByte(MessageTypes.ALL, ServiceCodes.FINALE, null)
+        Engine.writeString(MessageTypes.ALL, "$qc_finale_e4", null)
+        return
+      }
+
+      gotoNextMap(globals)
+      return
+    }
+
+    if (globals.intermissionRunning == 3) {
+      if (Engine.cvar("registered") == 0) {
+        Engine.writeByte(MessageTypes.ALL, ServiceCodes.SELL_SCREEN, null)
+        return
+      }
+
+      if (Engine.bitAnd(globals.serverFlags, 15) == 15) {
+        Engine.writeByte(MessageTypes.ALL, ServiceCodes.FINALE, null)
+        Engine.writeString(MessageTypes.ALL, "$qc_finale_all_runes", null)
+        return
+      }
+    }
+
+    gotoNextMap(globals)
+  }
+
+  static intermissionThink(globals, player) {
+    if (Engine.time() < globals.intermissionExitTime) return
+
+    var pressed = player.get("button0", false) ||
+      player.get("button1", false) ||
+      player.get("button2", false)
+
+    if (!pressed) return
+
+    exitIntermission(globals)
+  }
+
+  static executeChangeLevel(globals) {
+    globals.intermissionRunning = 1
+
+    var waitTime = (globals.deathmatch > 0) ? 5 : 2
+    globals.intermissionExitTime = Engine.time() + waitTime
+
+    Engine.writeByte(MessageTypes.ALL, ServiceCodes.CDTRACK, null)
+    Engine.writeByte(MessageTypes.ALL, 3, null)
+    Engine.writeByte(MessageTypes.ALL, 3, null)
+
+    var pos = findIntermission(globals)
+    var players = Engine.findAll(globals.world, "player")
+
+    if (players != null) {
+      for (other in players) {
+        other.set("view_ofs", [0, 0, 0])
+
+        var mangle = pos.get("mangle", [0, 0, 0])
+        other.set("angles", mangle)
+        other.set("v_angle", mangle)
+        other.set("fixangle", true)
+        other.set("nextthink", Engine.time() + 0.5)
+        other.set("takedamage", DamageValues.NO)
+        other.set("solid", SolidTypes.NOT)
+        other.set("movetype", MoveTypes.NONE)
+        other.set("modelindex", 0)
+        Engine.setOrigin(other, pos.get("origin", [0, 0, 0]))
+
+        if (globals.skill == 3) {
+          var worldModel = globals.world.get("model", "")
+          if (other.get("fired_weapon", 0) == 0 && worldModel == "maps/e1m1.bsp") {
+            Engine.writeByte(MessageTypes.ONE, ServiceCodes.ACHIEVEMENT, other)
+            Engine.writeString(MessageTypes.ONE, "ACH_PACIFIST", other)
+          }
+          if (other.get("took_damage", 0) == 0 && worldModel == "maps/e4m6.bsp") {
+            Engine.writeByte(MessageTypes.ONE, ServiceCodes.ACHIEVEMENT, other)
+            Engine.writeString(MessageTypes.ONE, "ACH_PAINLESS_MAZE", other)
+          }
+        }
+      }
+    }
+
+    Engine.writeByte(MessageTypes.ALL, ServiceCodes.INTERMISSION, null)
+
+    var worldModel = globals.world.get("model", "")
+    if (globals.campaign != 0 && worldModel == "maps/e1m7.bsp") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_COMPLETE_E1M7", null)
+    } else if (globals.campaign != 0 && worldModel == "maps/e2m6.bsp") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_COMPLETE_E2M6", null)
+    } else if (globals.campaign != 0 && worldModel == "maps/e3m6.bsp") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_COMPLETE_E3M6", null)
+    } else if (globals.campaign != 0 && worldModel == "maps/e4m7.bsp") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_COMPLETE_E4M7", null)
+    }
+
+    var nextMap = globals.nextMap
+    if (worldModel == "maps/e1m4.bsp" && nextMap == "e1m8") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_FIND_E1M8", null)
+    } else if (worldModel == "maps/e2m3.bsp" && nextMap == "e2m7") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_FIND_E2M7", null)
+    } else if (worldModel == "maps/e3m4.bsp" && nextMap == "e3m7") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_FIND_E3M7", null)
+    } else if (worldModel == "maps/e4m5.bsp" && nextMap == "e4m8") {
+      Engine.writeByte(MessageTypes.ALL, ServiceCodes.ACHIEVEMENT, null)
+      Engine.writeString(MessageTypes.ALL, "ACH_FIND_E4M8", null)
     }
   }
 }

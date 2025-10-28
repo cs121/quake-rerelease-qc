@@ -53,6 +53,26 @@ class Engine {
     _requireHost("executeChangeLevel", [trigger])
   }
 
+  static changeLevel(mapName) {
+    _requireHost("changeLevel", [mapName])
+  }
+
+  static writeByte(channel, value, entity) {
+    if (entity == null) {
+      _requireHost("writeByte", [channel, value])
+    } else {
+      _requireHost("writeByte", [channel, value, entity])
+    }
+  }
+
+  static writeString(channel, value, entity) {
+    if (entity == null) {
+      _requireHost("writeString", [channel, value])
+    } else {
+      _requireHost("writeString", [channel, value, entity])
+    }
+  }
+
   static bitAnd(a, b) {
     return _requireHost("bitAnd", [a, b])
   }

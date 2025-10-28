@@ -15,6 +15,33 @@ class Items {
   static QUAD { 4194304 }
 }
 
+class MessageTypes {
+  static BROADCAST { 0 }
+  static ONE { 1 }
+  static ALL { 2 }
+  static INIT { 3 }
+}
+
+class ServiceCodes {
+  static INTERMISSION { 30 }
+  static FINALE { 31 }
+  static CDTRACK { 32 }
+  static SELL_SCREEN { 33 }
+  static ACHIEVEMENT { 52 }
+}
+
+class DamageValues {
+  static NO { 0 }
+}
+
+class SolidTypes {
+  static NOT { 0 }
+}
+
+class MoveTypes {
+  static NONE { 0 }
+}
+
 class GameGlobals {
   construct new() {
     self = null
@@ -44,6 +71,8 @@ class GameGlobals {
     bodyQueueHead = null
     startingServerFlags = 0.0
     lastSpawn = null
+    intermissionRunning = 0.0
+    intermissionExitTime = 0.0
   }
 
   setSpawnParm(index, value) {
