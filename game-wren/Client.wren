@@ -2,8 +2,9 @@
 // Port of the essential client management and rules logic from client.qc.
 
 import "./Engine" for Engine
-import "./Globals" for GameGlobals, Items, MessageTypes, ServiceCodes, DamageValues, SolidTypes, MoveTypes
+import "./Globals" for GameGlobals, Items, MessageTypes, ServiceCodes, DamageValues, SolidTypes, MoveTypes, Channels, Attenuations, Contents
 import "./Entity" for GameEntity
+import "./Player" for PlayerModule
 
 class ClientModule {
   static setChangeParms(globals, player) {
@@ -93,6 +94,25 @@ class ClientModule {
     if (globals.intermissionRunning > 0) {
       exitIntermission(globals)
     }
+  }
+
+  static clientDisconnect(globals, player) {
+    if (globals.gameOver) return
+
+    var name = player.get("netname", "")
+    var frags = player.get("frags", 0).toString
+    Engine.broadcastPrint("$qc_left_game", [name, frags])
+
+    Engine.playSound(
+      player,
+      Channels.BODY,
+      "player/tornoff2.wav",
+      1,
+      Attenuations.NONE
+    )
+
+    player.set("effects", 0)
+    PlayerModule.setSuicideFrame(globals, player)
   }
 
   static findIntermission(globals) {
@@ -378,5 +398,210 @@ class ClientModule {
 
     Engine.initTrigger(trigger)
     Engine.setTriggerTouch(trigger, "Client.changeLevelTouch")
+  }
+
+  static clientObituary(globals, target, attacker) {
+    var targetClass = target.get("classname", "")
+    if (targetClass != "player") return
+
+    var attackerClass = attacker.get("classname", "")
+    var targetName = target.get("netname", "")
+    var attackerName = attacker.get("netname", "")
+    var attackerTeam = attacker.get("team", 0)
+    var targetTeam = target.get("team", 0)
+
+    var randomValue = Engine.random()
+
+    if (attackerClass == "teledeath") {
+      var owner = attacker.get("owner", null)
+      var ownerName = owner == null ? "" : owner.get("netname", "")
+      Engine.broadcastPrint("$qc_telefragged", [targetName, ownerName])
+      if (owner != null) {
+        owner.set("frags", owner.get("frags", 0) + 1)
+      }
+      return
+    }
+
+    if (attackerClass == "teledeath2") {
+      Engine.broadcastPrint("$qc_satans_power", [targetName])
+      target.set("frags", target.get("frags", 0) - 1)
+      return
+    }
+
+    if (attackerClass == "player") {
+      if (target == attacker) {
+        attacker.set("frags", attacker.get("frags", 0) - 1)
+
+        var targetWeapon = target.get("weapon", 0)
+        if (targetWeapon == Items.LIGHTNING && target.get("waterlevel", 0) > 1) {
+          var waterType = target.get("watertype", 0)
+          if (waterType == Contents.SLIME) {
+            Engine.broadcastPrint("$qc_discharge_slime", [targetName])
+          } else if (waterType == Contents.LAVA) {
+            Engine.broadcastPrint("$qc_discharge_lava", [targetName])
+          } else {
+            Engine.broadcastPrint("$qc_discharge_water", [targetName])
+          }
+          return
+        }
+
+        if (targetWeapon == Items.GRENADE_LAUNCHER) {
+          Engine.broadcastPrint("$qc_suicide_pin", [targetName])
+          return
+        }
+
+        if (randomValue >= 0.5) {
+          Engine.broadcastPrint("$qc_suicide_bored", [targetName])
+        } else {
+          Engine.broadcastPrint("$qc_suicide_loaded", [targetName])
+        }
+        return
+      }
+
+      if (globals.teamplay == 2 && targetTeam == attackerTeam && attackerTeam != 0) {
+        if (randomValue < 0.25) {
+          Engine.broadcastPrint("$qc_ff_teammate", [attackerName])
+        } else if (randomValue < 0.50) {
+          Engine.broadcastPrint("$qc_ff_glasses", [attackerName])
+        } else if (randomValue < 0.75) {
+          Engine.broadcastPrint("$qc_ff_otherteam", [attackerName])
+        } else {
+          Engine.broadcastPrint("$qc_ff_friend", [attackerName])
+        }
+
+        attacker.set("frags", attacker.get("frags", 0) - 1)
+        return
+      }
+
+      attacker.set("frags", attacker.get("frags", 0) + 1)
+
+      var weapon = attacker.get("weapon", 0)
+      if (weapon == Items.AXE) {
+        Engine.broadcastPrint("$qc_death_ax", [targetName, attackerName])
+        return
+      }
+
+      if (weapon == Items.SHOTGUN) {
+        Engine.broadcastPrint("$qc_death_sg", [targetName, attackerName])
+        return
+      }
+
+      if (weapon == Items.SUPER_SHOTGUN) {
+        Engine.broadcastPrint("$qc_death_dbl", [targetName, attackerName])
+        return
+      }
+
+      if (weapon == Items.NAILGUN) {
+        Engine.broadcastPrint("$qc_death_nail", [targetName, attackerName])
+        return
+      }
+
+      if (weapon == Items.SUPER_NAILGUN) {
+        Engine.broadcastPrint("$qc_death_sng", [targetName, attackerName])
+        return
+      }
+
+      if (weapon == Items.GRENADE_LAUNCHER) {
+        if (target.get("health", 0) < -40) {
+          Engine.broadcastPrint("$qc_death_gl1", [targetName, attackerName])
+        } else {
+          Engine.broadcastPrint("$qc_death_gl2", [targetName, attackerName])
+        }
+        return
+      }
+
+      if (weapon == Items.ROCKET_LAUNCHER) {
+        var quadActive = attacker.get("super_damage_finished", 0) > 0
+        if (quadActive && target.get("health", 0) < -40) {
+          var quadRand = Engine.random()
+          if (quadRand < 0.3) {
+            Engine.broadcastPrint("$qc_death_rl_quad1", [targetName, attackerName])
+          } else if (quadRand < 0.6) {
+            Engine.broadcastPrint("$qc_death_rl_quad2", [targetName, attackerName])
+          } else {
+            Engine.broadcastPrint("$qc_death_rl1", [targetName, attackerName])
+          }
+          return
+        }
+
+        if (target.get("health", 0) < -40) {
+          Engine.broadcastPrint("$qc_death_rl2", [targetName, attackerName])
+        } else {
+          Engine.broadcastPrint("$qc_death_rl3", [targetName, attackerName])
+        }
+        return
+      }
+
+      if (weapon == Items.LIGHTNING) {
+        if (attacker.get("waterlevel", 0) > 1) {
+          Engine.broadcastPrint("$qc_death_lg1", [targetName, attackerName])
+
+          if (attacker.get("invincible_finished", 0) > 0) {
+            globals.msgEntity = attacker
+            Engine.writeByte(MessageTypes.ONE, ServiceCodes.ACHIEVEMENT, attacker)
+            Engine.writeString(MessageTypes.ONE, "ACH_SURVIVE_DISCHARGE", attacker)
+          }
+        } else {
+          Engine.broadcastPrint("$qc_death_lg2", [targetName, attackerName])
+        }
+        return
+      }
+
+      return
+    }
+
+    target.set("frags", target.get("frags", 0) - 1)
+    var waterType = target.get("watertype", 0)
+    if (waterType == Contents.WATER) {
+      if (Engine.random() < 0.5) {
+        Engine.broadcastPrint("$qc_death_drown1", [targetName])
+      } else {
+        Engine.broadcastPrint("$qc_death_drown2", [targetName])
+      }
+      return
+    }
+
+    if (waterType == Contents.SLIME) {
+      if (Engine.random() < 0.5) {
+        Engine.broadcastPrint("$qc_death_slime1", [targetName])
+      } else {
+        Engine.broadcastPrint("$qc_death_slime2", [targetName])
+      }
+      return
+    }
+
+    if (waterType == Contents.LAVA) {
+      if (target.get("health", 0) < -15) {
+        Engine.broadcastPrint("$qc_death_lava1", [targetName])
+        return
+      }
+
+      if (Engine.random() < 0.5) {
+        Engine.broadcastPrint("$qc_death_lava2", [targetName])
+      } else {
+        Engine.broadcastPrint("$qc_death_lava3", [targetName])
+      }
+      return
+    }
+
+    if (attacker.get("solid", SolidTypes.NOT) == SolidTypes.BSP && attacker != globals.world) {
+      Engine.broadcastPrint("$qc_death_squish", [targetName])
+      return
+    }
+
+    var killString = attacker.get("killstring", null)
+    if (killString != null && killString != "") {
+      Engine.broadcastPrint(killString, [targetName])
+      return
+    }
+
+    var deathType = target.get("deathtype", "")
+    if (deathType == "falling") {
+      target.set("deathtype", "")
+      Engine.broadcastPrint("$qc_death_fall", [targetName])
+      return
+    }
+
+    Engine.broadcastPrint("$qc_death_died", [targetName])
   }
 }

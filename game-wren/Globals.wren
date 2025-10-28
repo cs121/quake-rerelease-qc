@@ -7,12 +7,30 @@ import "./Entity" for GameEntity
 class Items {
   static AXE { 4096 }
   static SHOTGUN { 1 }
+  static SUPER_SHOTGUN { 2 }
+  static NAILGUN { 4 }
+  static SUPER_NAILGUN { 8 }
+  static GRENADE_LAUNCHER { 16 }
+  static ROCKET_LAUNCHER { 32 }
+  static LIGHTNING { 64 }
+  static SUPERHEALTH { 65536 }
   static KEY1 { 131072 }
   static KEY2 { 262144 }
   static INVISIBILITY { 524288 }
   static INVULNERABILITY { 1048576 }
   static SUIT { 2097152 }
   static QUAD { 4194304 }
+}
+
+class Channels {
+  static AUTO { 0 }
+  static WEAPON { 1 }
+  static BODY { 2 }
+}
+
+class Attenuations {
+  static NONE { 0 }
+  static NORMAL { 1 }
 }
 
 class MessageTypes {
@@ -36,10 +54,30 @@ class DamageValues {
 
 class SolidTypes {
   static NOT { 0 }
+  static TRIGGER { 1 }
+  static BBOX { 2 }
+  static SLIDEBOX { 3 }
+  static BSP { 4 }
+  static CORPSE { 5 }
 }
 
 class MoveTypes {
   static NONE { 0 }
+  static WALK { 3 }
+  static TOSS { 6 }
+}
+
+class DeadFlags {
+  static NO { 0 }
+  static DYING { 1 }
+  static DEAD { 2 }
+  static RESPAWNABLE { 3 }
+}
+
+class Contents {
+  static WATER { -3 }
+  static SLIME { -4 }
+  static LAVA { -5 }
 }
 
 class GameGlobals {
