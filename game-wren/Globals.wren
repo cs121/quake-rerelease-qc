@@ -13,6 +13,9 @@ class Items {
   static GRENADE_LAUNCHER { 16 }
   static ROCKET_LAUNCHER { 32 }
   static LIGHTNING { 64 }
+  static ARMOR1 { 8192 }
+  static ARMOR2 { 16384 }
+  static ARMOR3 { 32768 }
   static SUPERHEALTH { 65536 }
   static KEY1 { 131072 }
   static KEY2 { 262144 }
@@ -50,6 +53,7 @@ class ServiceCodes {
   static CDTRACK { 32 }
   static SELL_SCREEN { 33 }
   static ACHIEVEMENT { 52 }
+  static KILLEDMONSTER { 27 }
 }
 
 class DamageValues {
@@ -100,6 +104,7 @@ class PlayerFlags {
   static PARTIALGROUND { 1024 }
   static WATERJUMP { 2048 }
   static JUMPRELEASED { 4096 }
+  static ISBOT { 8192 }
 }
 
 class Effects {
@@ -129,6 +134,7 @@ class GameGlobals {
   construct new() {
     self = null
     other = null
+    activator = null
     world = GameEntity.new()
     time = 0.0
     frameTime = 0.0
@@ -158,6 +164,7 @@ class GameGlobals {
     intermissionExitTime = 0.0
     modelIndexPlayer = 0
     modelIndexEyes = 0
+    damageAttacker = null
   }
 
   setSpawnParm(index, value) {
