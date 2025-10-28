@@ -526,10 +526,15 @@ class WeaponsModule {
   static _callPlayerAnimation(globals, player, animation) {
     if (animation == null || animation == "") return
 
+    var functionName = animation
+    if (!functionName.contains(".")) {
+      functionName = "PlayerModule." + functionName
+    }
+
     var previousSelf = globals.self
     var previousOther = globals.other
     globals.self = player
-    Engine.callEntityFunction(player, animation, [])
+    Engine.callEntityFunction(player, functionName, [])
     globals.self = previousSelf
     globals.other = previousOther
   }
@@ -651,7 +656,6 @@ class WeaponsModule {
       } else {
         WeaponsModule._callPlayerAnimation(globals, player, "player_axed1")
       }
-      WeaponsModule.startAxeAttack(globals, player)
       player.set("attack_finished", Engine.time() + 0.5)
       return
     }
@@ -672,13 +676,11 @@ class WeaponsModule {
 
     if (weapon == Items.NAILGUN) {
       WeaponsModule._callPlayerAnimation(globals, player, "player_nail1")
-      WeaponsModule.startNailgunAttack(globals, player)
       return
     }
 
     if (weapon == Items.SUPER_NAILGUN) {
       WeaponsModule._callPlayerAnimation(globals, player, "player_nail1")
-      WeaponsModule.startSuperNailgunAttack(globals, player)
       return
     }
 
@@ -698,7 +700,6 @@ class WeaponsModule {
 
     if (weapon == Items.LIGHTNING) {
       WeaponsModule._callPlayerAnimation(globals, player, "player_light1")
-      WeaponsModule.startLightningAttack(globals, player)
       player.set("attack_finished", Engine.time() + 0.1)
       Engine.playSound(player, Channels.AUTO, "weapons/lstart.wav", 1, Attenuations.NORMAL)
       return
