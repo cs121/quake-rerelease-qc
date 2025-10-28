@@ -4,6 +4,7 @@
 import "./Engine" for Engine
 import "./Globals" for GameGlobals
 import "./Entity" for GameEntity
+import "./Weapons" for WeaponsModule
 
 var _CORE_FILES = [
   "progs.dat",
@@ -123,6 +124,105 @@ var _CORE_SOUNDS = [
   "ambience/wind2.wav"
 ]
 
+var _WORLD_SOUNDS = [
+  "demon/dland2.wav",
+  "misc/h2ohit1.wav",
+  "items/itembk2.wav",
+  "player/plyrjmp8.wav",
+  "player/land.wav",
+  "player/land2.wav",
+  "player/drown1.wav",
+  "player/drown2.wav",
+  "player/gasp1.wav",
+  "player/gasp2.wav",
+  "player/h2odeath.wav",
+  "misc/talk.wav",
+  "player/teledth1.wav",
+  "misc/r_tele1.wav",
+  "misc/r_tele2.wav",
+  "misc/r_tele3.wav",
+  "misc/r_tele4.wav",
+  "misc/r_tele5.wav",
+  "weapons/lock4.wav",
+  "weapons/pkup.wav",
+  "items/armor1.wav",
+  "weapons/lhit.wav",
+  "weapons/lstart.wav",
+  "items/damage3.wav",
+  "misc/power.wav",
+  "player/gib.wav",
+  "player/udeath.wav",
+  "player/tornoff2.wav",
+  "player/pain1.wav",
+  "player/pain2.wav",
+  "player/pain3.wav",
+  "player/pain4.wav",
+  "player/pain5.wav",
+  "player/pain6.wav",
+  "player/death1.wav",
+  "player/death2.wav",
+  "player/death3.wav",
+  "player/death4.wav",
+  "player/death5.wav",
+  "weapons/ax1.wav",
+  "player/axhit1.wav",
+  "player/axhit2.wav",
+  "player/h2ojump.wav",
+  "player/slimbrn2.wav",
+  "player/inh2o.wav",
+  "player/inlava.wav",
+  "misc/outwater.wav",
+  "player/lburn1.wav",
+  "player/lburn2.wav",
+  "misc/water1.wav",
+  "misc/water2.wav"
+]
+
+var _WORLD_MODELS = [
+  "progs/player.mdl",
+  "progs/eyes.mdl",
+  "progs/h_player.mdl",
+  "progs/gib1.mdl",
+  "progs/gib2.mdl",
+  "progs/gib3.mdl",
+  "progs/s_bubble.spr",
+  "progs/s_explod.spr",
+  "progs/v_axe.mdl",
+  "progs/v_shot.mdl",
+  "progs/v_nail.mdl",
+  "progs/v_rock.mdl",
+  "progs/v_shot2.mdl",
+  "progs/v_nail2.mdl",
+  "progs/v_rock2.mdl",
+  "progs/bolt.mdl",
+  "progs/bolt2.mdl",
+  "progs/bolt3.mdl",
+  "progs/lavaball.mdl",
+  "progs/missile.mdl",
+  "progs/grenade.mdl",
+  "progs/spike.mdl",
+  "progs/s_spike.mdl",
+  "progs/backpack.mdl",
+  "progs/zom_gib.mdl",
+  "progs/v_light.mdl"
+]
+
+var _LIGHT_STYLES = [
+  [0, "m"],
+  [1, "mmnmmommommnonmmonqnmmo"],
+  [2, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba"],
+  [3, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg"],
+  [4, "mamamamamama"],
+  [5, "jklmnopqrstuvwxyzyxwvutsrqponmlkj"],
+  [6, "nmonqnmomnmomomno"],
+  [7, "mmmaaaabcdefgmmmmaaaammmaamm"],
+  [8, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa"],
+  [9, "aaaaaaaazzzzzzzz"],
+  [10, "mmamammmmammamamaaamammma"],
+  [11, "abcdefghijklmnopqrrqponmlkjihgfedcba"],
+  [63, "a"]
+]
+
 class WorldModule {
   static main(globals) {
     Engine.log("main function")
@@ -155,6 +255,31 @@ class WorldModule {
     globals.frameCount = globals.frameCount + 1
   }
 
+  static worldSpawn(globals) {
+    globals.startingServerFlags = globals.serverFlags
+    globals.lastSpawn = globals.world
+
+    WorldModule.initBodyQueue(globals)
+
+    var worldModel = globals.world.get("model", "")
+    var gravity = (worldModel == "maps/e1m8.bsp") ? "100" : "800"
+    Engine.cvarSet("sv_gravity", gravity)
+
+    WeaponsModule.precache(globals)
+
+    for (path in _WORLD_SOUNDS) {
+      Engine.precacheSound(path)
+    }
+
+    for (path in _WORLD_MODELS) {
+      Engine.precacheModel(path)
+    }
+
+    for (style in _LIGHT_STYLES) {
+      Engine.lightstyle(style[0], style[1])
+    }
+  }
+
   static initBodyQueue(globals) {
     var head = Engine.spawnEntity()
     head.set("classname", "bodyqueue")
@@ -178,7 +303,7 @@ class WorldModule {
 
   static copyToBodyQueue(globals, ent) {
     if (globals.bodyQueueHead == null) {
-      initBodyQueue(globals)
+      WorldModule.initBodyQueue(globals)
     }
 
     var head = globals.bodyQueueHead
