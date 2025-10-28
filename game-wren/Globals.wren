@@ -136,6 +136,22 @@ class PlayerFlags {
   static ISBOT { 8192 }
 }
 
+class DoorSpawnFlags {
+  static START_OPEN { 1 }
+  static DONT_LINK { 4 }
+  static GOLD_KEY { 8 }
+  static SILVER_KEY { 16 }
+  static TOGGLE { 32 }
+}
+
+class SecretDoorFlags {
+  static OPEN_ONCE { 1 }
+  static FIRST_LEFT { 2 }
+  static FIRST_DOWN { 4 }
+  static NO_SHOOT { 8 }
+  static ALWAYS_SHOOT { 16 }
+}
+
 class PlayerExtraFlags {
   static CHANGE_ONLY_NEW { 1 }
   static CHANGE_NEVER { 2 }
@@ -151,6 +167,12 @@ class Teams {
   static NONE { -1 }
   static MONSTERS { 0 }
   static HUMANS { 1 }
+}
+
+class WorldTypes {
+  static MEDIEVAL { 0 }
+  static METAL { 1 }
+  static BASE { 2 }
 }
 
 class HullVectors {
