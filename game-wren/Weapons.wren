@@ -25,6 +25,10 @@ var _WEAPON_SOUNDS = [
 ]
 
 var _AMMO_BITS = null
+var _multiDamageTarget = null
+var _multiDamageAmount = 0.0
+var _multiDamageInflictor = null
+var _multiDamageAttacker = null
 
 class WeaponsModule {
   static _vectorAdd(a, b) {
@@ -63,6 +67,10 @@ class WeaponsModule {
 
   static _cRandom() {
     return Engine.random() * 2 - 1
+  }
+
+  static crandom() {
+    return WeaponsModule._cRandom()
   }
 
   static _defaultVectors() {
@@ -158,6 +166,60 @@ class WeaponsModule {
     }
   }
 
+  static clearMultiDamage() {
+    _multiDamageTarget = null
+    _multiDamageAmount = 0.0
+    _multiDamageInflictor = null
+    _multiDamageAttacker = null
+  }
+
+  static addMultiDamage(globals, target, damage, inflictor, attacker) {
+    if (target == null) return
+    var inf = inflictor
+    var atk = attacker
+    if (inf == null && globals != null) inf = globals.self
+    if (atk == null && globals != null) atk = globals.self
+
+    if (_multiDamageTarget != null && _multiDamageTarget != target) {
+      WeaponsModule.applyMultiDamage(globals, inf, atk)
+    }
+
+    if (_multiDamageTarget != target) {
+      _multiDamageTarget = target
+      _multiDamageAmount = 0.0
+      _multiDamageInflictor = inf
+      _multiDamageAttacker = atk
+    }
+
+    _multiDamageAmount = _multiDamageAmount + (damage == null ? 0.0 : damage)
+  }
+
+  static applyMultiDamage(globals, inflictor, attacker) {
+    if (_multiDamageTarget == null) return
+
+    var inf = inflictor
+    var atk = attacker
+    if (inf == null) inf = _multiDamageInflictor
+    if (atk == null) atk = _multiDamageAttacker
+    if (inf == null && globals != null) inf = globals.self
+    if (atk == null && globals != null) atk = globals.self
+
+    CombatModule.tDamage(globals, _multiDamageTarget, inf, atk, _multiDamageAmount)
+    WeaponsModule.clearMultiDamage()
+  }
+
+  static ClearMultiDamage() {
+    WeaponsModule.clearMultiDamage()
+  }
+
+  static AddMultiDamage(globals, target, damage, inflictor, attacker) {
+    WeaponsModule.addMultiDamage(globals, target, damage, inflictor, attacker)
+  }
+
+  static ApplyMultiDamage(globals, inflictor, attacker) {
+    WeaponsModule.applyMultiDamage(globals, inflictor, attacker)
+  }
+
   static _perpendicularBasis(direction) {
     var forward = WeaponsModule._vectorNormalize(direction)
     if (WeaponsModule._vectorLength(forward) == 0) {
@@ -193,6 +255,10 @@ class WeaponsModule {
     return WeaponsModule._vectorScale(dir, 200)
   }
 
+  static wall_velocity(entity, planeNormal) {
+    return WeaponsModule._wallVelocity(entity, planeNormal)
+  }
+
   static spawnTouchBlood(entity, damage) {
     if (entity == null) return
     var origin = entity.get("origin", [0, 0, 0])
@@ -204,6 +270,10 @@ class WeaponsModule {
     var impactVelocity = WeaponsModule._vectorScale(WeaponsModule._wallVelocity(entity, plane), 0.2)
     var impactOrigin = WeaponsModule._vectorAdd(origin, WeaponsModule._vectorScale(impactVelocity, 0.01))
     WeaponsModule.spawnBlood(impactOrigin, impactVelocity, damage)
+  }
+
+  static spawn_touchblood(entity, damage) {
+    WeaponsModule.spawnTouchBlood(entity, damage)
   }
 
   static spawnMeatSpray(globals, owner, origin, velocity) {
@@ -260,6 +330,10 @@ class WeaponsModule {
     }
   }
 
+  static TraceAttack(globals, shooter, direction, trace, right, up, damageMap, damage) {
+    WeaponsModule._traceAttack(globals, shooter, direction, trace, right, up, damageMap, damage)
+  }
+
   static _fireBullets(globals, shooter, shotCount, dir, spread) {
     var vectors = WeaponsModule._makeVectors(shooter.get("v_angle", [0, 0, 0]))
     var forward = vectors["forward"]
@@ -290,6 +364,10 @@ class WeaponsModule {
     WeaponsModule._applyDamage(globals, shooter, shooter, damageMap)
   }
 
+  static fireBullets(globals, shooter, shotCount, dir, spread) {
+    WeaponsModule._fireBullets(globals, shooter, shotCount, dir, spread)
+  }
+
   static _fireRegularSpikes(globals, player, offset) {
     Engine.playSound(player, Channels.WEAPON, "weapons/rocket1i.wav", 1, Attenuations.NORMAL)
     player.set("attack_finished", Engine.time() + 0.2)
@@ -304,6 +382,10 @@ class WeaponsModule {
     player.set("punchangle", [-2, 0, 0])
   }
 
+  static fireRegularSpikes(globals, player, offset) {
+    WeaponsModule._fireRegularSpikes(globals, player, offset)
+  }
+
   static _fireSuperSpikes(globals, player) {
     Engine.playSound(player, Channels.WEAPON, "weapons/spike2.wav", 1, Attenuations.NORMAL)
     player.set("attack_finished", Engine.time() + 0.2)
@@ -315,6 +397,10 @@ class WeaponsModule {
     var origin = WeaponsModule._eyeOrigin(player)
     WeaponsModule._launchSpike(globals, player, origin, dir, true)
     player.set("punchangle", [-2, 0, 0])
+  }
+
+  static fireSuperSpikes(globals, player) {
+    WeaponsModule._fireSuperSpikes(globals, player)
   }
 
   static _fireSpikes(globals, player) {
@@ -366,6 +452,10 @@ class WeaponsModule {
     Engine.setSize(missile, [0, 0, 0], [0, 0, 0])
     Engine.setOrigin(missile, origin)
     return missile
+  }
+
+  static launch_spike(globals, owner, origin, dir) {
+    return WeaponsModule._launchSpike(globals, owner, origin, dir, false)
   }
 
   static _grenadeExplode(globals, grenade) {
@@ -423,6 +513,10 @@ class WeaponsModule {
     WeaponsModule._spikeDamage(globals, spike, other, 9, false)
   }
 
+  static spike_touch(globals, spike, other) {
+    WeaponsModule.spikeTouch(globals, spike, other)
+  }
+
   static superSpikeTouch(globals, spike, other) {
     if (spike == null) return
     if (other == null) return
@@ -436,6 +530,10 @@ class WeaponsModule {
     }
 
     WeaponsModule._spikeDamage(globals, spike, other, 18, true)
+  }
+
+  static superspike_touch(globals, spike, other) {
+    WeaponsModule.superSpikeTouch(globals, spike, other)
   }
 
   static _handleLightningTrace(globals, attacker, trace, damage, skipA, skipB) {
@@ -487,6 +585,10 @@ class WeaponsModule {
     }
   }
 
+  static LightningDamage(globals, attacker, start, end, damage) {
+    WeaponsModule._lightningDamage(globals, attacker, start, end, damage)
+  }
+
   static tMissileTouch(globals, missile, other) {
     if (missile == null) return
     if (other == missile.get("owner", null)) return
@@ -510,9 +612,66 @@ class WeaponsModule {
     Engine.removeEntity(missile)
   }
 
+  static T_MissileTouch(globals, missile, other) {
+    WeaponsModule.tMissileTouch(globals, missile, other)
+  }
+
+  static becomeExplosion(globals, entity) {
+    if (entity == null) return
+    entity.set("movetype", MoveTypes.NONE)
+    entity.set("velocity", [0, 0, 0])
+    entity.set("touch", null)
+    Engine.setModel(entity, "progs/s_explod.spr")
+    entity.set("solid", SolidTypes.NOT)
+    WeaponsModule.s_explode1(globals, entity)
+  }
+
+  static BecomeExplosion(globals, entity) {
+    WeaponsModule.becomeExplosion(globals, entity)
+  }
+
+  static s_explode1(globals, entity) {
+    WeaponsModule._setExplosionFrame(entity, 0, "WeaponsModule.s_explode2")
+  }
+
+  static s_explode2(globals, entity) {
+    WeaponsModule._setExplosionFrame(entity, 1, "WeaponsModule.s_explode3")
+  }
+
+  static s_explode3(globals, entity) {
+    WeaponsModule._setExplosionFrame(entity, 2, "WeaponsModule.s_explode4")
+  }
+
+  static s_explode4(globals, entity) {
+    WeaponsModule._setExplosionFrame(entity, 3, "WeaponsModule.s_explode5")
+  }
+
+  static s_explode5(globals, entity) {
+    WeaponsModule._setExplosionFrame(entity, 4, "WeaponsModule.s_explode6")
+  }
+
+  static s_explode6(globals, entity) {
+    WeaponsModule._setExplosionFrame(entity, 5, null)
+  }
+
   static precache(globals) {
     for (path in _WEAPON_SOUNDS) {
       Engine.precacheSound(path)
+    }
+  }
+
+  static _setExplosionFrame(entity, frame, nextName) {
+    if (entity == null) return
+    entity.set("frame", frame)
+    var delay = 0.1
+    if (nextName == null) {
+      entity.set("think", "SubsModule.subRemove")
+      entity.set("nextthink", Engine.time() + delay)
+      Engine.scheduleThink(entity, "SubsModule.subRemove", delay)
+    } else {
+      entity.set("think", nextName)
+      entity.set("nextthink", Engine.time() + delay)
+      Engine.scheduleThink(entity, nextName, delay)
     }
   }
 
@@ -921,6 +1080,98 @@ class WeaponsModule {
       WeaponsModule.superDamageSound(globals, player)
       WeaponsModule.attack(globals, player)
     }
+  }
+
+  static W_Attack(globals, player) {
+    WeaponsModule.attack(globals, player)
+  }
+
+  static W_ChangeWeapon(globals, player) {
+    WeaponsModule.changeWeapon(globals, player)
+  }
+
+  static W_FireAxe(globals, player) {
+    WeaponsModule.startAxeAttack(globals, player)
+  }
+
+  static W_FireShotgun(globals, player) {
+    WeaponsModule.fireShotgun(globals, player)
+  }
+
+  static W_FireSuperShotgun(globals, player) {
+    WeaponsModule.fireSuperShotgun(globals, player)
+  }
+
+  static W_FireGrenade(globals, player) {
+    WeaponsModule.fireGrenade(globals, player)
+  }
+
+  static W_FireRocket(globals, player) {
+    WeaponsModule.fireRocket(globals, player)
+  }
+
+  static W_FireLightning(globals, player) {
+    WeaponsModule.startLightningAttack(globals, player)
+  }
+
+  static W_FireSpikes(globals, player, offset) {
+    WeaponsModule._fireSpikes(globals, player)
+  }
+
+  static W_FireSuperSpikes(globals, player) {
+    WeaponsModule._fireSuperSpikes(globals, player)
+  }
+
+  static W_HasNoAmmo(globals, player) {
+    return WeaponsModule.hasNoAmmo(globals, player)
+  }
+
+  static W_Precache(globals) {
+    WeaponsModule.precache(globals)
+  }
+
+  static W_SetCurrentAmmo(globals, player) {
+    WeaponsModule.setCurrentAmmo(globals, player)
+  }
+
+  static W_WantsToChangeWeapon(globals, player, oldWeapon, newWeapon) {
+    return WeaponsModule.wantsToChangeWeapon(globals, player, oldWeapon, newWeapon)
+  }
+
+  static W_WeaponFrame(globals, player) {
+    WeaponsModule.weaponFrame(globals, player)
+  }
+
+  static W_BestWeapon(globals, player) {
+    return WeaponsModule.bestWeapon(globals, player)
+  }
+
+  static SuperDamageSound(globals, player) {
+    WeaponsModule.superDamageSound(globals, player)
+  }
+
+  static CycleWeaponCommand(globals, player) {
+    WeaponsModule.cycleWeaponCommand(globals, player)
+  }
+
+  static CycleWeaponReverseCommand(globals, player) {
+    WeaponsModule.cycleWeaponReverseCommand(globals, player)
+  }
+
+  static ImpulseCommands(globals, player) {
+    WeaponsModule.impulseCommands(globals, player)
+  }
+
+  static ServerflagsCommand(globals) {
+    WeaponsModule.serverflagsCommand(globals)
+  }
+
+  static QuadCheat(globals, player) {
+    WeaponsModule.quadCheat(globals, player)
+  }
+
+  static CheatCommand(globals, player) {
+    WeaponsModule.cheatCommand(globals, player)
   }
 
   static superDamageSound(globals, player) {
