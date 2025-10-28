@@ -334,6 +334,14 @@ class CombatModule {
     }
   }
 
+  static CanDamage(globals, target, inflictor) {
+    return CombatModule.canDamage(globals, target, inflictor)
+  }
+
+  static monster_death_use(globals, monster) {
+    CombatModule.monsterDeathUse(globals, monster)
+  }
+
   static Killed(globals, target, attacker) {
     CombatModule.killed(globals, target, attacker)
   }
