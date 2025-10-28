@@ -1082,6 +1082,31 @@ class WeaponsModule {
     }
   }
 
+  static SpawnBlood(origin, velocity, damage) {
+    WeaponsModule.spawnBlood(origin, velocity, damage)
+  }
+
+  static SpawnChunk(origin, velocity) {
+    WeaponsModule.spawnChunk(origin, velocity)
+  }
+
+  static SpawnMeatSpray(globals, origin, velocity) {
+    var owner = globals == null ? null : globals.self
+    WeaponsModule.spawnMeatSpray(globals, owner, origin, velocity)
+  }
+
+  static FireBullets(globals, shooter, shotCount, dir, spread) {
+    WeaponsModule.fireBullets(globals, shooter, shotCount, dir, spread)
+  }
+
+  static GrenadeExplode(globals, grenade) {
+    WeaponsModule.grenadeExplode(globals, grenade)
+  }
+
+  static GrenadeTouch(globals, grenade, other) {
+    WeaponsModule.grenadeTouch(globals, grenade, other)
+  }
+
   static W_Attack(globals, player) {
     WeaponsModule.attack(globals, player)
   }
