@@ -49,6 +49,10 @@ class Engine {
     _requireHost("setSpawnParms", [entity])
   }
 
+  static setModel(entity, path) {
+    return _requireHost("setModel", [entity, path])
+  }
+
   static executeChangeLevel(trigger) {
     _requireHost("executeChangeLevel", [trigger])
   }
@@ -85,6 +89,18 @@ class Engine {
     _requireHost("applyDamage", [target, inflictor, attacker, amount])
   }
 
+  static runWeaponFrame(player) {
+    _requireHost("runWeaponFrame", [player])
+  }
+
+  static setCurrentAmmo(player) {
+    _requireHost("setCurrentAmmo", [player])
+  }
+
+  static selectBestWeapon(player) {
+    return _requireHost("selectBestWeapon", [player])
+  }
+
   static useTargets(entity, activator) {
     _requireHost("useTargets", [entity, activator])
   }
@@ -107,6 +123,18 @@ class Engine {
 
   static objError(message) {
     _requireHost("objError", [message])
+  }
+
+  static localCommand(command) {
+    _requireHost("localCommand", [command])
+  }
+
+  static stuffCommand(entity, command) {
+    _requireHost("stuffCommand", [entity, command])
+  }
+
+  static playerPrint(entity, messageId, args) {
+    _requireHost("playerPrint", [entity, messageId, args])
   }
 
   static bitAnd(a, b) {
@@ -135,6 +163,26 @@ class Engine {
 
   static setSize(entity, mins, maxs) {
     _requireHost("setSize", [entity, mins, maxs])
+  }
+
+  static findRadius(origin, radius) {
+    return _requireHost("findRadius", [origin, radius])
+  }
+
+  static traceLine(start, end, ignoreMonsters, ignoreEntity) {
+    return _requireHost("traceLine", [start, end, ignoreMonsters, ignoreEntity])
+  }
+
+  static makeVectors(angles) {
+    return _requireHost("makeVectors", [angles])
+  }
+
+  static spawnTeleportFog(origin) {
+    _requireHost("spawnTeleportFog", [origin])
+  }
+
+  static spawnTeleportDeath(origin, owner, mins, maxs) {
+    _requireHost("spawnTeleportDeath", [origin, owner, mins, maxs])
   }
 
   static time() {
