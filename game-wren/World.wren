@@ -329,4 +329,9 @@ class WorldModule {
 
     globals.bodyQueueHead = head.get("owner", head)
   }
+
+  static worldspawn(globals) { WorldModule.worldSpawn(globals) }
+  static bodyqueue(globals, entity) { WorldModule.bodyQueue(globals, entity) }
+  static InitBodyQueue(globals) { WorldModule.initBodyQueue(globals) }
+  static CopyToBodyQueue(globals, entity) { WorldModule.copyToBodyQueue(globals, entity) }
 }

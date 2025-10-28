@@ -327,4 +327,35 @@ class SubsModule {
   static subNull(globals, entity) {
     // Intentionally empty; mirrors SUB_Null in QuakeC.
   }
+
+  static SetMovedir(globals, entity) { SubsModule.setMoveDir(globals, entity) }
+  static InitTrigger(globals, entity) { SubsModule.initTrigger(globals, entity) }
+  static SUB_CalcMove(globals, entity, destination, speed, callback) {
+    SubsModule.calcMove(globals, entity, destination, speed, callback)
+  }
+  static SUB_CalcMoveEnt(globals, entity, destination, speed, callback) {
+    SubsModule.calcMoveEnt(globals, entity, destination, speed, callback)
+  }
+  static SUB_CalcMoveDone(globals, entity) { SubsModule.calcMoveDone(globals, entity) }
+  static SUB_CalcAngleMove(globals, entity, destination, speed, callback) {
+    SubsModule.calcAngleMove(globals, entity, destination, speed, callback)
+  }
+  static SUB_CalcAngleMoveEnt(globals, entity, destination, speed, callback) {
+    SubsModule.calcAngleMoveEnt(globals, entity, destination, speed, callback)
+  }
+  static SUB_CalcAngleMoveDone(globals, entity) {
+    SubsModule.calcAngleMoveDone(globals, entity)
+  }
+  static DelayThink(globals, entity) { SubsModule.delayThink(globals, entity) }
+  static SUB_UseTargets(globals, entity, activator) {
+    SubsModule.useTargets(globals, entity, activator)
+  }
+  static SUB_AttackFinished(globals, entity, normalTime) {
+    SubsModule.attackFinished(globals, entity, normalTime)
+  }
+  static SUB_CheckRefire(globals, entity, thinkFunction) {
+    SubsModule.checkRefire(globals, entity, thinkFunction)
+  }
+  static SUB_Remove(globals, entity) { SubsModule.subRemove(globals, entity) }
+  static SUB_Null(globals, entity) { SubsModule.subNull(globals, entity) }
 }

@@ -603,4 +603,30 @@ class TriggersModule {
 
     globals.forceRetouch = 2
   }
+
+  static trigger_setskill(globals, trigger) {
+    TriggersModule.triggerSetSkill(globals, trigger)
+  }
+
+  static trigger_onlyregistered(globals, trigger) {
+    TriggersModule.triggerOnlyRegistered(globals, trigger)
+  }
+
+  static trigger_onlyregistered_touch(globals, trigger, other) {
+    TriggersModule.triggerOnlyRegisteredTouch(globals, trigger, other)
+  }
+
+  static trigger_monsterjump(globals, trigger) {
+    TriggersModule.triggerMonsterJump(globals, trigger)
+  }
+
+  static trigger_monsterjump_touch(globals, trigger, other) {
+    TriggersModule.triggerMonsterJumpTouch(globals, trigger, other)
+  }
+
+  static spawn_tfog(globals, origin) { TriggersModule.spawnTFog(globals, origin) }
+
+  static spawn_tdeath(globals, origin, owner) {
+    TriggersModule.spawnTDeath(globals, origin, owner)
+  }
 }
