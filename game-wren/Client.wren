@@ -8,6 +8,7 @@ import "./Globals" for PlayerFlags, Effects, Teams, HullVectors
 import "./Entity" for GameEntity
 import "./Player" for PlayerModule
 import "./World" for WorldModule
+import "./Subs" for SubsModule
 
 var _IDEAL_DM_SPAWN_DIST = 384
 var _MIN_DM_SPAWN_DIST = 84
@@ -281,7 +282,7 @@ class ClientModule {
     }
 
     globals.nextMap = trigger.get("map", null)
-    Engine.useTargets(trigger, toucher)
+    SubsModule.useTargets(globals, trigger, toucher)
 
     var spawnFlags = trigger.get("spawnflags", 0)
     if (Engine.bitAnd(spawnFlags, 1) != 0 && globals.deathmatch == 0) {

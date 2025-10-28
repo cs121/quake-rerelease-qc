@@ -41,8 +41,16 @@ class Engine {
     return _requireHost("findAll", [scope, className])
   }
 
+  static findByField(scope, field, value) {
+    return _requireHost("findByField", [scope, field, value])
+  }
+
   static spawnEntity() {
     return _requireHost("spawnEntity", [])
+  }
+
+  static removeEntity(entity) {
+    _requireHost("removeEntity", [entity])
   }
 
   static setSpawnParms(entity) {
@@ -83,6 +91,10 @@ class Engine {
 
   static playSound(entity, channel, sample, volume, attenuation) {
     _requireHost("playSound", [entity, channel, sample, volume, attenuation])
+  }
+
+  static centerPrint(entity, message) {
+    _requireHost("centerPrint", [entity, message])
   }
 
   static applyDamage(target, inflictor, attacker, amount) {
@@ -183,6 +195,10 @@ class Engine {
 
   static makeVectors(angles) {
     return _requireHost("makeVectors", [angles])
+  }
+
+  static isVisible(observer, target) {
+    return _requireHost("isVisible", [observer, target])
   }
 
   static spawnTeleportFog(origin) {
