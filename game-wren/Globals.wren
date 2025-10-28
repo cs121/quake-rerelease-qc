@@ -5,7 +5,6 @@
 import "./Entity" for GameEntity
 
 class Items {
-  static AXE { 4096 }
   static SHOTGUN { 1 }
   static SUPER_SHOTGUN { 2 }
   static NAILGUN { 4 }
@@ -13,6 +12,12 @@ class Items {
   static GRENADE_LAUNCHER { 16 }
   static ROCKET_LAUNCHER { 32 }
   static LIGHTNING { 64 }
+  static EXTRA_WEAPON { 128 }
+  static SHELLS { 256 }
+  static NAILS { 512 }
+  static ROCKETS { 1024 }
+  static CELLS { 2048 }
+  static AXE { 4096 }
   static ARMOR1 { 8192 }
   static ARMOR2 { 16384 }
   static ARMOR3 { 32768 }
@@ -105,6 +110,11 @@ class PlayerFlags {
   static WATERJUMP { 2048 }
   static JUMPRELEASED { 4096 }
   static ISBOT { 8192 }
+}
+
+class PlayerExtraFlags {
+  static CHANGE_ONLY_NEW { 1 }
+  static CHANGE_NEVER { 2 }
 }
 
 class Effects {

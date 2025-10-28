@@ -9,6 +9,7 @@ import "./Entity" for GameEntity
 import "./Player" for PlayerModule
 import "./World" for WorldModule
 import "./Subs" for SubsModule
+import "./Weapons" for WeaponsModule
 
 var _IDEAL_DM_SPAWN_DIST = 384
 var _MIN_DM_SPAWN_DIST = 84
@@ -634,7 +635,7 @@ class ClientModule {
     }
 
     ClientModule.decodeLevelParms(globals, player)
-    Engine.setCurrentAmmo(player)
+    WeaponsModule.setCurrentAmmo(globals, player)
 
     player.set("attack_finished", Engine.time())
     player.set("th_pain", "player_pain")
@@ -933,11 +934,11 @@ class ClientModule {
 
     if (Engine.time() > player.get("attack_finished", 0) &&
         player.get("currentammo", 0) == 0 &&
-        player.get("weapon", 0) != Items.AXE) {
-      var best = Engine.selectBestWeapon(player)
+        player.get("weapon", Items.AXE) != Items.AXE) {
+      var best = WeaponsModule.bestWeapon(globals, player)
       if (best != null) {
         player.set("weapon", best)
-        Engine.setCurrentAmmo(player)
+        WeaponsModule.setCurrentAmmo(globals, player)
       }
     }
   }
@@ -1090,7 +1091,7 @@ class ClientModule {
     if (ClientModule._vectorEquals(player.get("view_ofs", [0, 0, 0]), [0, 0, 0])) return
     if (player.get("deadflag", 0) != DeadFlags.NO) return
 
-    Engine.runWeaponFrame(player)
+    WeaponsModule.weaponFrame(globals, player)
 
     if (player.get("jump_flag", 0) < -300 && ClientModule._hasFlag(player, PlayerFlags.ONGROUND) && player.get("health", 0) > 0) {
       var waterType = player.get("watertype", 0)
