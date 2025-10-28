@@ -638,8 +638,8 @@ class ClientModule {
     WeaponsModule.setCurrentAmmo(globals, player)
 
     player.set("attack_finished", Engine.time())
-    player.set("th_pain", "player_pain")
-    player.set("th_die", "PlayerDie")
+    player.set("th_pain", "PlayerModule.playerPain")
+    player.set("th_die", "PlayerModule.playerDie")
     player.set("deadflag", DeadFlags.NO)
     player.set("pausetime", 0)
 
