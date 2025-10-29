@@ -335,7 +335,6 @@ class KnightModule {
       KnightModule._knight_deathBAdvance(globals, monster)
     }
 
-    CombatModule.monster_death_use(globals, monster)
   }
 
   static _knight_deathAdvance(globals, monster) {
