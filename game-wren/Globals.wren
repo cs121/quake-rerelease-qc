@@ -30,6 +30,12 @@ class Items {
   static QUAD { 4194304 }
 }
 
+class WorldTypes {
+  static MEDIEVAL { 0 }
+  static METAL { 1 }
+  static BASE { 2 }
+}
+
 class Channels {
   static AUTO { 0 }
   static WEAPON { 1 }
