@@ -190,6 +190,7 @@ class Effects {
   static DIMLIGHT { 8 }
   static QUADLIGHT { 16 }
   static PENTALIGHT { 32 }
+  static CANDLELIGHT { 64 }
 }
 
 class Teams {
