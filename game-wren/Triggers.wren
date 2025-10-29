@@ -629,4 +629,55 @@ class TriggersModule {
   static spawn_tdeath(globals, origin, owner) {
     TriggersModule.spawnTDeath(globals, origin, owner)
   }
+
+  static trigger_reactivate(globals, trigger) {
+    TriggersModule.triggerReactivate(globals, trigger)
+  }
+
+  static multi_wait(globals, trigger) { TriggersModule.multiWait(globals, trigger) }
+  static multi_trigger(globals, trigger) { TriggersModule.multiTrigger(globals, trigger) }
+  static multi_use(globals, trigger, activator) {
+    TriggersModule.multiUse(globals, trigger, activator)
+  }
+  static multi_touch(globals, trigger, other) {
+    TriggersModule.multiTouch(globals, trigger, other)
+  }
+  static multi_killed(globals, trigger) { TriggersModule.multiKilled(globals, trigger) }
+  static trigger_multiple(globals, trigger) { TriggersModule.triggerMultiple(globals, trigger) }
+  static trigger_once(globals, trigger) { TriggersModule.triggerOnce(globals, trigger) }
+  static trigger_relay(globals, trigger) { TriggersModule.triggerRelay(globals, trigger) }
+  static trigger_secret(globals, trigger) { TriggersModule.triggerSecret(globals, trigger) }
+  static counter_use(globals, trigger, activator) {
+    TriggersModule.counterUse(globals, trigger, activator)
+  }
+  static trigger_counter(globals, trigger) { TriggersModule.triggerCounter(globals, trigger) }
+  static info_teleport_destination(globals, info) {
+    TriggersModule.infoTeleportDestination(globals, info)
+  }
+  static teleport_touch(globals, trigger, other) {
+    TriggersModule.teleportTouch(globals, trigger, other)
+  }
+  static teleport_use(globals, trigger, activator) {
+    TriggersModule.teleportUse(globals, trigger, activator)
+  }
+  static trigger_teleport(globals, trigger) { TriggersModule.triggerTeleport(globals, trigger) }
+  static play_teleport(globals, trigger) { TriggersModule.playTeleport(globals, trigger) }
+  static hurt_on(globals, trigger) { TriggersModule.hurtOn(globals, trigger) }
+  static hurt_touch(globals, trigger, other) {
+    TriggersModule.hurtTouch(globals, trigger, other)
+  }
+  static trigger_hurt(globals, trigger) { TriggersModule.triggerHurt(globals, trigger) }
+  static trigger_push(globals, trigger) { TriggersModule.triggerPush(globals, trigger) }
+  static trigger_push_touch(globals, trigger, other) {
+    TriggersModule.triggerPushTouch(globals, trigger, other)
+  }
+  static teleport_use_targets(globals, trigger, activator) {
+    TriggersModule.teleportUse(globals, trigger, activator)
+  }
+  static tdeath_touch(globals, trigger, other) {
+    TriggersModule.tdeathTouch(globals, trigger, other)
+  }
+  static trigger_skill_touch(globals, trigger, toucher) {
+    TriggersModule.triggerSkillTouch(globals, trigger, toucher)
+  }
 }

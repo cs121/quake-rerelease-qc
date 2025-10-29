@@ -4,6 +4,7 @@
 
 import "./Engine" for Engine
 import "./Globals" for Teams, PlayerFlags, DamageValues, Items
+import "./Subs" for SubsModule
 
 class MonstersModule {
   static _vectorSub(a, b) {
@@ -58,6 +59,20 @@ class MonstersModule {
     monster.set("nextthink", globals.time + 0.1)
     monster.set("think", "AIModule.foundTarget")
     Engine.scheduleThink(monster, "AIModule.foundTarget", 0.1)
+  }
+
+  static monsterDeathUse(globals, monster) {
+    if (monster == null) return
+
+    var flags = monster.get("flags", 0)
+    flags = flags - Engine.bitAnd(flags, PlayerFlags.FLY)
+    flags = flags - Engine.bitAnd(flags, PlayerFlags.SWIM)
+    monster.set("flags", flags)
+
+    var targetName = monster.get("target", null)
+    if (targetName == null || targetName == "") return
+
+    SubsModule.useTargets(globals, monster, monster.get("enemy", null))
   }
 
   static walkmonster_start_go(globals, monster) {
@@ -217,4 +232,9 @@ class MonstersModule {
     Engine.scheduleThink(monster, "MonstersModule.swimmonster_start_go", 0.0)
     globals.totalMonsters = globals.totalMonsters + 1
   }
+
+  // ------------------------------------------------------------------------
+  // Compatibility wrappers -------------------------------------------------
+
+  static monster_death_use(globals, monster) { MonstersModule.monsterDeathUse(globals, monster) }
 }

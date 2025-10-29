@@ -297,6 +297,29 @@ class AIModule {
     Engine.changeYaw(monster)
   }
 
+  static chooseTurn(globals, monster, dest) {
+    if (monster == null) return
+
+    var target = dest == null ? monster.get("origin", [0, 0, 0]) : dest
+    var direction = AIModule._vectorSub(monster.get("origin", [0, 0, 0]), target)
+
+    var plane = (globals != null && globals.tracePlaneNormal != null) ? globals.tracePlaneNormal : [0, 0, 0]
+    if (plane[0] == 0 && plane[1] == 0) {
+      var flat = [direction[0], direction[1], 0]
+      if (flat[0] == 0 && flat[1] == 0) return
+      monster.set("ideal_yaw", AIModule._vectorToYaw(flat))
+      return
+    }
+
+    var candidate = [plane[1], -plane[0], 0]
+    var dot = direction[0] * candidate[0] + direction[1] * candidate[1] + direction[2] * candidate[2]
+
+    var chosen = dot > 0 ? [-plane[1], plane[0], 0] : [plane[1], -plane[0], 0]
+    if (chosen[0] == 0 && chosen[1] == 0) return
+
+    monster.set("ideal_yaw", AIModule._vectorToYaw(chosen))
+  }
+
   static ai_turn(globals, monster) {
     if (AIModule.findTarget(globals, monster)) return
     AIModule._changeYaw(monster)
@@ -442,5 +465,18 @@ class AIModule {
     }
 
     AIModule.ai_pathtogoal(globals, monster, dist, enemy, enemyVisible, enemyRange)
+  }
+
+  // ------------------------------------------------------------------------
+  // Compatibility wrappers -------------------------------------------------
+
+  static anglemod(value) { return AIModule._angleMod(value) }
+  static FacingIdeal(monster) { return AIModule.facingIdeal(monster) }
+  static FindTarget(globals, monster) { return AIModule.findTarget(globals, monster) }
+  static FoundTarget(globals, monster) { AIModule.foundTarget(globals, monster) }
+  static HuntTarget(globals, monster) { AIModule.huntTarget(globals, monster) }
+  static ChooseTurn(globals, monster, dest) { AIModule.chooseTurn(globals, monster, dest) }
+  static CheckAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw) {
+    return FightModule.checkAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
   }
 }
