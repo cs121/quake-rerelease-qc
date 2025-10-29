@@ -188,4 +188,23 @@ class ButtonsModule {
     button.set("pos1", button.get("origin", [0, 0, 0]))
     button.set("pos2", ButtonsModule._computeEndPosition(button))
   }
+
+  // ------------------------------------------------------------------------
+  // Compatibility wrappers -------------------------------------------------
+
+  static button_wait(globals, button) { ButtonsModule.buttonWait(globals, button) }
+  static button_done(globals, button) { ButtonsModule.buttonDone(globals, button) }
+  static button_return(globals, button) { ButtonsModule.buttonReturn(globals, button) }
+  static button_blocked(globals, button, other) {
+    ButtonsModule.buttonBlocked(globals, button, other)
+  }
+  static button_fire(globals, button) { ButtonsModule.buttonFire(globals, button) }
+  static button_use(globals, button, activator) {
+    ButtonsModule.buttonUse(globals, button, activator)
+  }
+  static button_touch(globals, button, other) {
+    ButtonsModule.buttonTouch(globals, button, other)
+  }
+  static button_killed(globals, button) { ButtonsModule.buttonKilled(globals, button) }
+  static func_button(globals, button) { ButtonsModule.funcButton(globals, button) }
 }

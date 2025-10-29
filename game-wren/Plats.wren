@@ -437,4 +437,44 @@ class PlatsModule {
     train.set("think", "PlatsModule.funcTrainFind")
     Engine.scheduleThink(train, "PlatsModule.funcTrainFind", delay)
   }
+
+  // ------------------------------------------------------------------------
+  // Compatibility wrappers -------------------------------------------------
+
+  static plat_spawn_inside_trigger(globals, plat) {
+    PlatsModule.platSpawnInsideTrigger(globals, plat)
+  }
+  static plat_hit_top(globals, plat) { PlatsModule.platHitTop(globals, plat) }
+  static plat_hit_bottom(globals, plat) { PlatsModule.platHitBottom(globals, plat) }
+  static plat_go_down(globals, plat) { PlatsModule.platGoDown(globals, plat) }
+  static plat_go_up(globals, plat) { PlatsModule.platGoUp(globals, plat) }
+  static plat_center_touch(globals, trigger, other) {
+    PlatsModule.platCenterTouch(globals, trigger, other)
+  }
+  static plat_outside_touch(globals, plat, other) {
+    PlatsModule.platOutsideTouch(globals, plat, other)
+  }
+  static plat_trigger_use(globals, plat, activator) {
+    PlatsModule.platTriggerUse(globals, plat, activator)
+  }
+  static plat_crush(globals, plat, other) { PlatsModule.platCrush(globals, plat, other) }
+  static plat_use(globals, plat, activator) {
+    PlatsModule.platUse(globals, plat, activator)
+  }
+  static func_plat(globals, plat) { PlatsModule.funcPlat(globals, plat) }
+  static train_blocked(globals, train, other) {
+    PlatsModule.trainBlocked(globals, train, other)
+  }
+  static train_use(globals, train, activator) {
+    PlatsModule.trainUse(globals, train, activator)
+  }
+  static train_wait(globals, train) { PlatsModule.trainWait(globals, train) }
+  static train_next(globals, train) { PlatsModule.trainNext(globals, train) }
+  static func_train_find(globals, train) {
+    PlatsModule.funcTrainFind(globals, train)
+  }
+  static func_train(globals, train) { PlatsModule.funcTrain(globals, train) }
+  static misc_teleporttrain(globals, train) {
+    PlatsModule.miscTeleporttrain(globals, train)
+  }
 }
