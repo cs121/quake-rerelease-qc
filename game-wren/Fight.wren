@@ -295,6 +295,43 @@ class FightModule {
     return true
   }
 
+  static _checkDogMelee(globals, monster, enemyRange) {
+    if (enemyRange != Ranges.MELEE) return false
+    monster.set("attack_state", AttackStates.MELEE)
+    return true
+  }
+
+  static _checkDogJump(globals, monster) {
+    var enemy = monster.get("enemy", null)
+    if (enemy == null) return false
+
+    var origin = monster.get("origin", [0, 0, 0])
+    var mins = monster.get("mins", [0, 0, 0])
+    var maxs = monster.get("maxs", [0, 0, 0])
+    var enemyOrigin = enemy.get("origin", [0, 0, 0])
+    var enemyMins = enemy.get("mins", [0, 0, 0])
+    var enemyMaxs = enemy.get("maxs", [0, 0, 0])
+    var enemySizeZ = enemyMaxs[2] - enemyMins[2]
+
+    if (origin[2] + mins[2] > enemyOrigin[2] + enemyMins[2] + 0.75 * enemySizeZ) return false
+    if (origin[2] + maxs[2] < enemyOrigin[2] + enemyMins[2] + 0.25 * enemySizeZ) return false
+
+    var dist = FightModule._vectorSub(enemyOrigin, origin)
+    dist[2] = 0
+    var distance = FightModule._vectorLength(dist)
+
+    if (distance < 80) return false
+    if (distance > 150) return false
+    return true
+  }
+
+  static dogCheckAttack(globals, monster, enemyRange) {
+    if (FightModule._checkDogMelee(globals, monster, enemyRange)) return true
+    if (!FightModule._checkDogJump(globals, monster)) return false
+    monster.set("attack_state", AttackStates.MISSILE)
+    return true
+  }
+
   static checkAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw) {
     var classname = monster.get("classname", "")
     if (!enemyVisible) return false
@@ -307,6 +344,9 @@ class FightModule {
     }
     if (classname == "monster_shambler") {
       return FightModule.shamCheckAttack(globals, monster, enemyVisible, enemyRange)
+    }
+    if (classname == "monster_dog") {
+      return FightModule.dogCheckAttack(globals, monster, enemyRange)
     }
 
     return FightModule.checkAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
@@ -327,6 +367,9 @@ class FightModule {
   }
   static OgreCheckAttack(globals, monster, enemyVisible, enemyRange) {
     return FightModule.ogreCheckAttack(globals, monster, enemyVisible, enemyRange)
+  }
+  static DogCheckAttack(globals, monster, enemyRange) {
+    return FightModule.dogCheckAttack(globals, monster, enemyRange)
   }
   static CheckAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw) {
     return FightModule.checkAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
