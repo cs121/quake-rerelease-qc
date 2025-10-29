@@ -2,6 +2,7 @@
 // Ports critical combat-related helpers from combat.qc to Wren.
 
 import "./Engine" for Engine
+import "./AI" for AIModule
 import "./Globals" for MoveTypes, PlayerFlags, Items, ServiceCodes, MessageTypes
 import "./Globals" for DamageValues, Channels, Attenuations
 import "./Client" for ClientModule
@@ -58,15 +59,6 @@ class CombatModule {
     var previousOther = globals.other
     globals.self = entity
     Engine.callEntityFunction(entity, functionName, args)
-    globals.self = previousSelf
-    globals.other = previousOther
-  }
-
-  static _callGlobalFunction(globals, functionName, entity, args) {
-    var previousSelf = globals.self
-    var previousOther = globals.other
-    globals.self = entity
-    Engine.callGlobalFunction(functionName, entity, args)
     globals.self = previousSelf
     globals.other = previousOther
   }
@@ -267,7 +259,7 @@ class CombatModule {
               target.set("oldenemy", currentEnemy)
             }
             target.set("enemy", attacker)
-            CombatModule._callGlobalFunction(globals, "FoundTarget", target, [])
+            AIModule.foundTarget(globals, target)
           }
         }
       }
