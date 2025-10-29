@@ -28,7 +28,7 @@ var _THRASH_LIGHTS = [
 ]
 
 class ShubModule {
-  static _shubEntity = null
+  static var _shubEntity = null
 
   static _setFrame(globals, entity, frame, nextFunction, delay) {
     MonstersModule.setFrame(globals, entity, frame, nextFunction, delay)

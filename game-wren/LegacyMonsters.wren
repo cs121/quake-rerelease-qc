@@ -5,7 +5,7 @@
 import "./Engine" for Engine
 
 class LegacyMonstersModule {
-  static _announced = {}
+  static var _announced = {}
 
   static _announceOnce(name) {
     if (_announced.containsKey(name)) return
