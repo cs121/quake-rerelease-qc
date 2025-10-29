@@ -13,15 +13,15 @@ class DefsModule {
 
   static _applyVectors(globals, vectors) {
     if (vectors == null) {
-      globals.vForward = _zeroVector()
-      globals.vRight = _zeroVector()
-      globals.vUp = _zeroVector()
+      globals.vForward = DefsModule._zeroVector()
+      globals.vRight = DefsModule._zeroVector()
+      globals.vUp = DefsModule._zeroVector()
       return
     }
 
-    globals.vForward = vectors.containsKey("forward") ? vectors["forward"] : _zeroVector()
-    globals.vRight = vectors.containsKey("right") ? vectors["right"] : _zeroVector()
-    globals.vUp = vectors.containsKey("up") ? vectors["up"] : _zeroVector()
+    globals.vForward = vectors.containsKey("forward") ? vectors["forward"] : DefsModule._zeroVector()
+    globals.vRight = vectors.containsKey("right") ? vectors["right"] : DefsModule._zeroVector()
+    globals.vUp = vectors.containsKey("up") ? vectors["up"] : DefsModule._zeroVector()
   }
 
   static _vectorLength(v) {
@@ -30,9 +30,9 @@ class DefsModule {
   }
 
   static _normalizeVector(v) {
-    if (v == null) return _zeroVector()
-    var length = _vectorLength(v)
-    if (length == 0) return _zeroVector()
+    if (v == null) return DefsModule._zeroVector()
+    var length = DefsModule._vectorLength(v)
+    if (length == 0) return DefsModule._zeroVector()
     return [v[0] / length, v[1] / length, v[2] / length]
   }
 
@@ -41,17 +41,27 @@ class DefsModule {
     return null
   }
 
+  static _buildMessage(messageId, args) {
+    var message = messageId == null ? "" : messageId.toString
+    if (args == null) return message
+    for (arg in args) {
+      if (arg == null) continue
+      message = message + arg.toString
+    }
+    return message
+  }
+
   static makevectors(globals, angles) {
-    var input = angles == null ? _zeroVector() : angles
+    var input = angles == null ? DefsModule._zeroVector() : angles
     var vectors = Engine.makeVectors(input)
-    _applyVectors(globals, vectors)
+    DefsModule._applyVectors(globals, vectors)
     return vectors
   }
 
   static setorigin(globals, entity, origin) {
     if (entity == null) entity = globals.self
     if (entity == null) return
-    Engine.setOrigin(entity, origin == null ? _zeroVector() : origin)
+    Engine.setOrigin(entity, origin == null ? DefsModule._zeroVector() : origin)
   }
 
   static setmodel(globals, entity, model) {
@@ -63,7 +73,7 @@ class DefsModule {
   static setsize(globals, entity, mins, maxs) {
     if (entity == null) entity = globals.self
     if (entity == null) return
-    Engine.setSize(entity, mins == null ? _zeroVector() : mins, maxs == null ? _zeroVector() : maxs)
+    Engine.setSize(entity, mins == null ? DefsModule._zeroVector() : mins, maxs == null ? DefsModule._zeroVector() : maxs)
   }
 
   static break(globals) {
@@ -80,7 +90,7 @@ class DefsModule {
   }
 
   static normalize(globals, vector) {
-    return _normalizeVector(vector)
+    return DefsModule._normalizeVector(vector)
   }
 
   static error(globals, message) {
@@ -94,7 +104,7 @@ class DefsModule {
   }
 
   static vlen(globals, vector) {
-    return _vectorLength(vector)
+    return DefsModule._vectorLength(vector)
   }
 
   static vectoyaw(globals, vector) {
@@ -115,8 +125,8 @@ class DefsModule {
       globals.traceAllSolid = 0.0
       globals.traceStartSolid = 0.0
       globals.traceFraction = 1.0
-      globals.traceEndPos = _zeroVector()
-      globals.tracePlaneNormal = _zeroVector()
+      globals.traceEndPos = DefsModule._zeroVector()
+      globals.tracePlaneNormal = DefsModule._zeroVector()
       globals.tracePlaneDist = 0.0
       globals.traceEnt = null
       globals.traceInOpen = 0.0
@@ -127,8 +137,8 @@ class DefsModule {
     globals.traceAllSolid = trace.containsKey("allSolid") && trace["allSolid"] ? 1.0 : 0.0
     globals.traceStartSolid = trace.containsKey("startSolid") && trace["startSolid"] ? 1.0 : 0.0
     globals.traceFraction = trace.containsKey("fraction") ? trace["fraction"] : 1.0
-    globals.traceEndPos = trace.containsKey("endpos") ? trace["endpos"] : _zeroVector()
-    globals.tracePlaneNormal = trace.containsKey("planeNormal") ? trace["planeNormal"] : _zeroVector()
+    globals.traceEndPos = trace.containsKey("endpos") ? trace["endpos"] : DefsModule._zeroVector()
+    globals.tracePlaneNormal = trace.containsKey("planeNormal") ? trace["planeNormal"] : DefsModule._zeroVector()
     globals.tracePlaneDist = trace.containsKey("planeDist") ? trace["planeDist"] : 0.0
     globals.traceEnt = trace.containsKey("entity") ? trace["entity"] : null
     globals.traceInOpen = trace.containsKey("inOpen") && trace["inOpen"] ? 1.0 : 0.0
@@ -175,7 +185,7 @@ class DefsModule {
   }
 
   static vtos(globals, vector) {
-    if (vector == null) vector = _zeroVector()
+    if (vector == null) vector = DefsModule._zeroVector()
     return vector[0].toString + " " + vector[1].toString + " " + vector[2].toString
   }
 
@@ -249,7 +259,7 @@ class DefsModule {
 
   static aim(globals, entity, speed) {
     if (entity == null) entity = globals.self
-    if (entity == null) return _zeroVector()
+    if (entity == null) return DefsModule._zeroVector()
     return Engine.aim(entity, speed == null ? 0.0 : speed)
   }
 
@@ -284,7 +294,7 @@ class DefsModule {
   }
 
   static _write(globals, kind, channel, value) {
-    var entity = _messageEntity(globals, channel)
+    var entity = DefsModule._messageEntity(globals, channel)
     if (kind == "byte") {
       Engine.writeByte(channel, value, entity)
     } else if (kind == "char") {
@@ -304,14 +314,14 @@ class DefsModule {
     }
   }
 
-  static WriteByte(globals, channel, value) { _write(globals, "byte", channel, value) }
-  static WriteChar(globals, channel, value) { _write(globals, "char", channel, value) }
-  static WriteShort(globals, channel, value) { _write(globals, "short", channel, value) }
-  static WriteLong(globals, channel, value) { _write(globals, "long", channel, value) }
-  static WriteCoord(globals, channel, value) { _write(globals, "coord", channel, value) }
-  static WriteAngle(globals, channel, value) { _write(globals, "angle", channel, value) }
-  static WriteString(globals, channel, value) { _write(globals, "string", channel, value) }
-  static WriteEntity(globals, channel, value) { _write(globals, "entity", channel, value) }
+  static WriteByte(globals, channel, value) { DefsModule._write(globals, "byte", channel, value) }
+  static WriteChar(globals, channel, value) { DefsModule._write(globals, "char", channel, value) }
+  static WriteShort(globals, channel, value) { DefsModule._write(globals, "short", channel, value) }
+  static WriteLong(globals, channel, value) { DefsModule._write(globals, "long", channel, value) }
+  static WriteCoord(globals, channel, value) { DefsModule._write(globals, "coord", channel, value) }
+  static WriteAngle(globals, channel, value) { DefsModule._write(globals, "angle", channel, value) }
+  static WriteString(globals, channel, value) { DefsModule._write(globals, "string", channel, value) }
+  static WriteEntity(globals, channel, value) { DefsModule._write(globals, "entity", channel, value) }
 
   static movetogoal(globals, step) {
     if (globals.self == null) return
@@ -337,8 +347,8 @@ class DefsModule {
   static centerprint(globals, client, messageId, args) {
     if (client == null) client = globals.self
     if (client == null) return
-    var payload = args == null ? [] : args
-    Engine.centerPrint(client, messageId, payload)
+    var message = DefsModule._buildMessage(messageId, args)
+    Engine.centerPrint(client, message)
   }
 
   static ambientsound(globals, origin, sample, volume, attenuation) {
