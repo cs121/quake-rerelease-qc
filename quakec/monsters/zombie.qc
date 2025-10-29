@@ -545,3 +545,8 @@ void() monster_zombie =
 	else
 		walkmonster_start();
 };
+
+void() qc_monster_zombie =
+{
+        monster_zombie ();
+};

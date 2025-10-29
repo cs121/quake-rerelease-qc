@@ -433,3 +433,8 @@ void() monster_shambler =
 	
 	walkmonster_start();
 };
+
+void() qc_monster_shambler =
+{
+        monster_shambler ();
+};

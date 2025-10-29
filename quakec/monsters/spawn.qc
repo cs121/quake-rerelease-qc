@@ -241,3 +241,8 @@ void() monster_tarbaby =
 	walkmonster_start ();
 };
 
+
+void() qc_monster_tarbaby =
+{
+        monster_tarbaby ();
+};

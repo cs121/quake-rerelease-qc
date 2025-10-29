@@ -536,7 +536,17 @@ void() monster_ogre =
 
 void() monster_ogre_marksman =
 {
-	monster_ogre ();
+        monster_ogre ();
+};
+
+void() qc_monster_ogre =
+{
+        monster_ogre ();
+};
+
+void() qc_monster_ogre_marksman =
+{
+        monster_ogre_marksman ();
 };
 
 

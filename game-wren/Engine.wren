@@ -5,6 +5,31 @@
 // signal that a binding must be supplied before execution.
 
 class Engine {
+  static _bindings = {}
+
+  static registerBinding(name, handler) {
+    if (handler == null) {
+      Engine.clearBinding(name)
+      return
+    }
+    _bindings[name] = handler
+  }
+
+  static clearBinding(name) {
+    if (_bindings.containsKey(name)) {
+      _bindings.remove(name)
+    }
+  }
+
+  static hasBinding(name) {
+    return _bindings.containsKey(name)
+  }
+
+  static _callBinding(name, args) {
+    var handler = _bindings[name]
+    if (handler == null) return null
+    return handler.call(args)
+  }
   static precacheFile(path) {
     _requireHost("precacheFile", [path])
   }
@@ -370,6 +395,9 @@ class Engine {
   }
 
   static _requireHost(name, args) {
+    if (Engine.hasBinding(name)) {
+      return Engine._callBinding(name, args)
+    }
     Fiber.abort("Engine.%s requires a host implementation (args: %(_))." % [name, args])
   }
 }

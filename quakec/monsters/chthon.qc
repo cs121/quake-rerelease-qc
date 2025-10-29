@@ -428,3 +428,8 @@ void() event_lightning =
 };
 
 
+
+void() qc_monster_boss =
+{
+        monster_boss ();
+};

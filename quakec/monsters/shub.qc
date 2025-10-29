@@ -347,3 +347,8 @@ void() monster_oldone =
 	total_monsters = total_monsters + 1;
 };
 
+
+void() qc_monster_oldone =
+{
+        monster_oldone ();
+};

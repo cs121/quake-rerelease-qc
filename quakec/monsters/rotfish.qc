@@ -216,3 +216,8 @@ void() monster_fish =
 	swimmonster_start ();
 };
 
+
+void() qc_monster_fish =
+{
+        monster_fish ();
+};

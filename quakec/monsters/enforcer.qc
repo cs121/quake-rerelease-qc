@@ -390,3 +390,8 @@ void() monster_enforcer =
 
 	walkmonster_start();
 };
+
+void() qc_monster_enforcer =
+{
+        monster_enforcer ();
+};

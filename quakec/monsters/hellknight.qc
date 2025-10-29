@@ -485,3 +485,8 @@ void() monster_hell_knight =
 	
 	walkmonster_start ();
 };
+
+void() qc_monster_hell_knight =
+{
+        monster_hell_knight ();
+};
