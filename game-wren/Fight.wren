@@ -7,6 +7,8 @@ import "./Globals" for Ranges, AttackStates
 import "./Subs" for SubsModule
 import "./Combat" for CombatModule
 import "./Knight" for KnightModule
+import "./Fiend" for FiendModule
+import "./Scrag" for ScragModule
 
 class FightModule {
   static _vectorAdd(a, b) {
@@ -345,8 +347,14 @@ class FightModule {
     if (classname == "monster_shambler") {
       return FightModule.shamCheckAttack(globals, monster, enemyVisible, enemyRange)
     }
+    if (classname == "monster_demon1") {
+      return FiendModule.demonCheckAttack(globals, monster, enemyRange)
+    }
     if (classname == "monster_dog") {
       return FightModule.dogCheckAttack(globals, monster, enemyRange)
+    }
+    if (classname == "monster_wizard") {
+      return ScragModule.wizardCheckAttack(globals, monster, enemyVisible, enemyRange)
     }
 
     return FightModule.checkAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
