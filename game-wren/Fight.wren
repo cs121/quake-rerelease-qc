@@ -269,6 +269,8 @@ class FightModule {
     if (enemyRange == Ranges.NEAR) chance = 0.10
     else if (enemyRange == Ranges.MID) chance = 0.05
 
+    if (FightModule._random() >= chance) return false
+
     monster.set("attack_state", AttackStates.MISSILE)
     SubsModule.SUB_AttackFinished(globals, monster, 1 + 2 * FightModule._random())
     return true
