@@ -386,3 +386,8 @@ void() monster_dog =
 
 	walkmonster_start();
 };
+
+void() qc_monster_dog =
+{
+        monster_dog ();
+};

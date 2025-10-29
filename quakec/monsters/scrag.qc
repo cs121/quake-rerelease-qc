@@ -454,3 +454,8 @@ void() monster_wizard =
 		
 	flymonster_start ();
 };
+
+void() qc_monster_wizard =
+{
+        monster_wizard ();
+};

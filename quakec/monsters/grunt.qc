@@ -331,3 +331,8 @@ void() monster_army =
 
 	walkmonster_start ();
 };
+
+void() qc_monster_army =
+{
+        monster_army ();
+};

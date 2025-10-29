@@ -276,3 +276,8 @@ void() monster_shalrath =
 	self.nextthink = time + 0.1 + random () * 0.1;	
 
 };
+
+void() qc_monster_shalrath =
+{
+        monster_shalrath ();
+};

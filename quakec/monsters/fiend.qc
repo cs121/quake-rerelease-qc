@@ -386,3 +386,8 @@ void()	Demon_JumpTouch =
 	self.nextthink = time + 0.1;
 };
 
+
+void() qc_monster_demon1 =
+{
+        monster_demon1 ();
+};
