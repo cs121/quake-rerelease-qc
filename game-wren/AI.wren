@@ -9,9 +9,9 @@ import "./Subs" for SubsModule
 import "./Fight" for FightModule
 
 class AIModule {
-  static _sightEntity = null
-  static _sightEntityTime = 0.0
-  static _moveDistance = 0.0
+  static var _sightEntity = null
+  static var _sightEntityTime = 0.0
+  static var _moveDistance = 0.0
 
   static _vectorAdd(a, b) {
     return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]

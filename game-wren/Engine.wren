@@ -5,7 +5,7 @@
 // signal that a binding must be supplied before execution.
 
 class Engine {
-  static _bindings = {}
+  static var _bindings = {}
 
   static registerBinding(name, handler) {
     if (handler == null) {
