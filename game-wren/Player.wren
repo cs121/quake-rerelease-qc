@@ -1023,6 +1023,14 @@ class PlayerModule {
     Engine.scheduleThink(spawner, "PlayerModule.deathBubblesSpawn", 0.1)
   }
 
+  static DeathBubbles(globals, player, count) {
+    PlayerModule.deathBubbles(globals, player, count)
+  }
+
+  static DeathBubblesSpawn(globals, spawner) {
+    PlayerModule.deathBubblesSpawn(globals, spawner)
+  }
+
   static bubble_bob(globals, bubble) {
     if (bubble == null) return
 

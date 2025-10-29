@@ -84,6 +84,24 @@ class FightModule {
     return false
   }
 
+  static knightAttack(globals, monster) {
+    if (monster == null) return
+
+    var enemy = monster.get("enemy", null)
+    if (enemy == null) return
+
+    var enemyEye = FightModule._vectorAdd(enemy.get("origin", [0, 0, 0]), enemy.get("view_ofs", [0, 0, 0]))
+    var selfEye = FightModule._vectorAdd(monster.get("origin", [0, 0, 0]), monster.get("view_ofs", [0, 0, 0]))
+    var delta = FightModule._vectorSub(enemyEye, selfEye)
+    var distance = FightModule._vectorLength(delta)
+
+    if (distance < 80) {
+      Engine.callGlobalFunction("knight_atk1", monster, [])
+    } else {
+      Engine.callGlobalFunction("knight_runatk1", monster, [])
+    }
+  }
+
   static checkAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw) {
     var enemy = monster.get("enemy", null)
     if (enemy == null) return false
@@ -291,5 +309,25 @@ class FightModule {
     }
 
     return FightModule.checkAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
+  }
+
+  // ------------------------------------------------------------------------
+  // Compatibility wrappers -------------------------------------------------
+
+  static knight_attack(globals, monster) { FightModule.knightAttack(globals, monster) }
+  static CheckAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw) {
+    return FightModule.checkAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
+  }
+  static SoldierCheckAttack(globals, monster, enemyRange) {
+    return FightModule.soldierCheckAttack(globals, monster, enemyRange)
+  }
+  static ShamCheckAttack(globals, monster, enemyVisible, enemyRange) {
+    return FightModule.shamCheckAttack(globals, monster, enemyVisible, enemyRange)
+  }
+  static OgreCheckAttack(globals, monster, enemyVisible, enemyRange) {
+    return FightModule.ogreCheckAttack(globals, monster, enemyVisible, enemyRange)
+  }
+  static CheckAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw) {
+    return FightModule.checkAnyAttack(globals, monster, enemyVisible, enemyInfront, enemyRange, enemyYaw)
   }
 }

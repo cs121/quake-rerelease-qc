@@ -330,6 +330,10 @@ class DoorsModule {
     return trigger
   }
 
+  static spawnField(globals, owner, mins, maxs) {
+    return DoorsModule._spawnField(globals, owner, mins, maxs)
+  }
+
   static _entitiesTouching(a, b) {
     if (a == null || b == null) return false
 
@@ -347,6 +351,8 @@ class DoorsModule {
 
     return true
   }
+
+  static entitiesTouching(a, b) { return DoorsModule._entitiesTouching(a, b) }
 
   static linkDoors(globals, door) {
     if (door == null) return
@@ -881,4 +887,9 @@ class DoorsModule {
     DoorsModule.secretTouch(globals, door, other)
   }
   static func_door_secret(globals, door) { DoorsModule.funcDoorSecret(globals, door) }
+  static spawn_field(globals, owner, mins, maxs) {
+    return DoorsModule._spawnField(globals, owner, mins, maxs)
+  }
+  static EntitiesTouching(globals, a, b) { return DoorsModule._entitiesTouching(a, b) }
+  static entities_touching(globals, a, b) { return DoorsModule._entitiesTouching(a, b) }
 }
