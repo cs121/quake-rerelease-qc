@@ -837,4 +837,48 @@ class DoorsModule {
       door.set("wait", 5)
     }
   }
+
+  // ------------------------------------------------------------------------
+  // Compatibility wrappers -------------------------------------------------
+
+  static door_blocked(globals, door, other) {
+    DoorsModule.doorBlocked(globals, door, other)
+  }
+  static door_hit_top(globals, door) { DoorsModule.doorHitTop(globals, door) }
+  static door_hit_bottom(globals, door) { DoorsModule.doorHitBottom(globals, door) }
+  static door_go_down(globals, door) { DoorsModule.doorGoDown(globals, door) }
+  static door_go_up(globals, door, activator) {
+    DoorsModule.doorGoUp(globals, door, activator)
+  }
+  static door_fire(globals, door, activator) {
+    DoorsModule.doorFire(globals, door, activator)
+  }
+  static door_use(globals, door) { DoorsModule.doorUse(globals, door) }
+  static door_trigger_touch(globals, trigger, other) {
+    DoorsModule.doorTriggerTouch(globals, trigger, other)
+  }
+  static door_killed(globals, door) { DoorsModule.doorKilled(globals, door) }
+  static door_touch(globals, door, other) { DoorsModule.doorTouch(globals, door, other) }
+  static LinkDoors(globals, door) { DoorsModule.linkDoors(globals, door) }
+  static func_door(globals, door) { DoorsModule.funcDoor(globals, door) }
+  static fd_secret_use(globals, door, activator) {
+    DoorsModule.fdSecretUse(globals, door, activator)
+  }
+  static fd_secret_pain(globals, door, attacker, damage) {
+    DoorsModule.fdSecretPain(globals, door, attacker, damage)
+  }
+  static fd_secret_move1(globals, door) { DoorsModule.fdSecretMove1(globals, door) }
+  static fd_secret_move2(globals, door) { DoorsModule.fdSecretMove2(globals, door) }
+  static fd_secret_move3(globals, door) { DoorsModule.fdSecretMove3(globals, door) }
+  static fd_secret_move4(globals, door) { DoorsModule.fdSecretMove4(globals, door) }
+  static fd_secret_move5(globals, door) { DoorsModule.fdSecretMove5(globals, door) }
+  static fd_secret_move6(globals, door) { DoorsModule.fdSecretMove6(globals, door) }
+  static fd_secret_done(globals, door) { DoorsModule.fdSecretDone(globals, door) }
+  static secret_blocked(globals, door, other) {
+    DoorsModule.secretBlocked(globals, door, other)
+  }
+  static secret_touch(globals, door, other) {
+    DoorsModule.secretTouch(globals, door, other)
+  }
+  static func_door_secret(globals, door) { DoorsModule.funcDoorSecret(globals, door) }
 }

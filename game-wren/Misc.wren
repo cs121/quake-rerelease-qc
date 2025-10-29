@@ -649,6 +649,9 @@ class MiscModule {
   static shooter_think(globals, entity) { MiscModule.shooterThink(globals, entity) }
   static trap_spikeshooter(globals, entity) { MiscModule.trapSpikeshooter(globals, entity) }
   static trap_shooter(globals, entity) { MiscModule.trapShooter(globals, entity) }
+  static LaunchLaser(globals, entity, origin, direction) {
+    return MiscModule.launchLaser(globals, entity, origin, direction)
+  }
   static air_bubbles(globals, entity) { MiscModule.airBubbles(globals, entity) }
   static make_bubbles(globals, entity) { MiscModule.makeBubbles(globals, entity) }
   static bubble_split(globals, entity) { MiscModule.bubbleSplit(globals, entity) }
