@@ -6,6 +6,7 @@ import "./Engine" for Engine
 import "./Globals" for Ranges, AttackStates
 import "./Subs" for SubsModule
 import "./Combat" for CombatModule
+import "./Knight" for KnightModule
 
 class FightModule {
   static _vectorAdd(a, b) {
@@ -96,9 +97,9 @@ class FightModule {
     var distance = FightModule._vectorLength(delta)
 
     if (distance < 80) {
-      Engine.callGlobalFunction("knight_atk1", monster, [])
+      KnightModule.knight_atk1(globals, monster)
     } else {
-      Engine.callGlobalFunction("knight_runatk1", monster, [])
+      KnightModule.knight_runatk1(globals, monster)
     }
   }
 
