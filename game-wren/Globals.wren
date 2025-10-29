@@ -159,6 +159,8 @@ class PlayerExtraFlags {
 
 class Effects {
   static MUZZLEFLASH { 2 }
+  static BRIGHTLIGHT { 4 }
+  static DIMLIGHT { 8 }
   static QUADLIGHT { 16 }
   static PENTALIGHT { 32 }
 }
@@ -184,6 +186,7 @@ class Contents {
   static WATER { -3 }
   static SLIME { -4 }
   static LAVA { -5 }
+  static SKY { -6 }
 }
 
 class GameGlobals {
