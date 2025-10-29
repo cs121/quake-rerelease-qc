@@ -233,6 +233,10 @@ class Engine {
     _requireHost("setSize", [entity, mins, maxs])
   }
 
+  static changeYaw(entity) {
+    _requireHost("changeYaw", [entity])
+  }
+
   static moveToGoal(entity, step) {
     _requireHost("moveToGoal", [entity, step])
   }

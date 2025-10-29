@@ -106,6 +106,13 @@ class MoveTypes {
   static GIB { 11 }
 }
 
+class Ranges {
+  static MELEE { 0 }
+  static NEAR { 1 }
+  static MID { 2 }
+  static FAR { 3 }
+}
+
 class MoverStates {
   static TOP { 0 }
   static BOTTOM { 1 }
@@ -118,6 +125,20 @@ class DeadFlags {
   static DYING { 1 }
   static DEAD { 2 }
   static RESPAWNABLE { 3 }
+}
+
+class AttackStates {
+  static STRAIGHT { 1 }
+  static SLIDING { 2 }
+  static MELEE { 3 }
+  static MISSILE { 4 }
+}
+
+class CombatStyles {
+  static NONE { 0 }
+  static RANGED { 1 }
+  static MELEE { 2 }
+  static MIXED { 3 }
 }
 
 class PlayerFlags {
@@ -169,6 +190,14 @@ class Teams {
   static NONE { -1 }
   static MONSTERS { 0 }
   static HUMANS { 1 }
+}
+
+class PathResults {
+  static ERROR { 0 }
+  static REACHED_GOAL { 1 }
+  static REACHED_PATH_END { 2 }
+  static MOVE_BLOCKED { 3 }
+  static IN_PROGRESS { 4 }
 }
 
 class WorldTypes {
