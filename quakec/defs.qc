@@ -532,6 +532,7 @@ float	AS_MISSILE		= 4;
 
 .float  allowPathFind; // not used in Vanilla, but added for demonstration purposes...
 .float  is_pet;
+.entity         hound_owner;
 
 // Combat style
 .float 	combat_style;
