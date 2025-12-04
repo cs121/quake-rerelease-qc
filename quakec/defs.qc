@@ -47,6 +47,7 @@ string		mapname;
 float		deathmatch;
 float		coop;
 float		teamplay;
+float		teamplay_bloodhound;
 
 float		serverflags;		// propagated from level to level, used to
 								// keep track of completed episodes
@@ -530,6 +531,7 @@ float	AS_MELEE		= 3;
 float	AS_MISSILE		= 4;
 
 .float  allowPathFind; // not used in Vanilla, but added for demonstration purposes...
+.float  is_pet;
 
 // Combat style
 .float 	combat_style;
@@ -558,6 +560,9 @@ float 	CS_MIXED		= 3; // can do ranged or melee equally.
 .float		fly_sound;
 
 .float 		healthrot_nextcheck; // if grabbed Mega-Health, the next time we'll rot the players health
+.float		hound_alive;
+.float		hound_max;
+.float		hound_next_id;
 
 .float		axhitme;
 

@@ -18,6 +18,7 @@
 */
 
 void() bubble_bob;
+void(entity player) BloodhoundCheckElimination;
 
 /*
 ==============================================================================
@@ -584,6 +585,14 @@ void() GibPlayer =
 void() PlayerDie =
 {
 	local	float	i;
+
+	if (teamplay_bloodhound)
+	{
+		if (self.hound_max > 0)
+			self.hound_max = self.hound_max - 1;
+
+		BloodhoundCheckElimination(self);
+	}
 	
 	self.items = self.items - (self.items & ( IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD ) );
 	self.invisible_finished = 0;	// don't die as eyes
