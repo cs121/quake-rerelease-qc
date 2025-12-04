@@ -93,8 +93,8 @@ void()	Dog_JumpTouch =
 
 	if (self.health <= 0)
 		return;
-	if (self.is_pet && other == self.owner)
-		return;
+        if (self.is_pet && other == self.hound_owner)
+                return;
 		
 	if (other.takedamage)
 	{
@@ -409,92 +409,92 @@ Bloodhound pet helpers
 // Think function scheduled by the respawn timer to recreate a pet.
 void() PetDogRespawnThink =
 {
-	local entity owner;
+        local entity owner_player;
 
-	owner = self.owner;
-	remove(self);
+        owner_player = self.hound_owner;
+        remove(self);
 
-	if (!teamplay_bloodhound)
-		return;
+        if (!teamplay_bloodhound)
+                return;
 
-	if (!owner)
-		return;
+        if (!owner_player)
+                return;
 
-	if (owner.classname != "player")
-		return;
+        if (owner_player.classname != "player")
+                return;
 
-	if (owner.health <= 0 || owner.deadflag != DEAD_NO)
-		return;
+        if (owner_player.health <= 0 || owner_player.deadflag != DEAD_NO)
+                return;
 
-	spawn_pet_dog(owner);
-	owner.hound_alive = owner.hound_alive + 1;
+        spawn_pet_dog(owner_player);
+        owner_player.hound_alive = owner_player.hound_alive + 1;
 };
 
 // Schedule a delayed respawn for a pet dog after it dies.
-void(entity owner) SchedulePetRespawn =
+void(entity owner_player) SchedulePetRespawn =
 {
-	local entity timer;
+        local entity timer;
 
-	if (!owner)
-		return;
+        if (!owner_player)
+                return;
 
-	timer = spawn();
-	timer.owner = owner;
-	timer.classname = "hound_respawn";
-	timer.think = PetDogRespawnThink;
-	timer.nextthink = time + 120;
+        timer = spawn();
+        timer.hound_owner = owner_player;
+        timer.classname = "hound_respawn";
+        timer.think = PetDogRespawnThink;
+        timer.nextthink = time + 120;
 };
 
 // Handle bookkeeping when a pet dies so we can track counts and respawns.
 void() PetDogHandleDeath =
 {
-	if (!self.is_pet)
-		return;
+        if (!self.is_pet)
+                return;
 
-	if (!teamplay_bloodhound)
-		return;
+        if (!teamplay_bloodhound)
+                return;
 
-	if (self.owner)
-	{
-		if (self.owner.hound_alive > 0)
-			self.owner.hound_alive = self.owner.hound_alive - 1;
+        if (self.hound_owner)
+        {
+                if (self.hound_owner.hound_alive > 0)
+                        self.hound_owner.hound_alive = self.hound_owner.hound_alive - 1;
 
-		if (self.owner.hound_max > 0)
-		{
-			SchedulePetRespawn(self.owner);
-			self.owner.hound_max = self.owner.hound_max - 1;
-		}
+                if (self.hound_owner.hound_max > 0)
+                {
+                        SchedulePetRespawn(self.hound_owner);
+                        self.hound_owner.hound_max = self.hound_owner.hound_max - 1;
+                }
 
-		BloodhoundCheckElimination(self.owner);
-	}
+                BloodhoundCheckElimination(self.hound_owner);
+        }
 };
 
 // Pet AI: follow the owner and attack nearby enemy players.
 void() PetDogThink =
 {
-	local vector delta;
-	local float dist;
-	local entity targ;
-	local entity best;
-	local float bestdist;
+        local vector delta;
+        local float dist;
+        local entity targ;
+        local entity best;
+        local float bestdist;
 
-	if (!teamplay_bloodhound || !self.owner)
-	{
-		remove(self);
-		return;
-	}
+        if (!teamplay_bloodhound || !self.hound_owner)
+        {
+                remove(self);
+                return;
+        }
 
-	if (self.owner.health <= 0 || self.owner.deadflag != DEAD_NO)
-	{
-		self.velocity = '0 0 0';
-		self.nextthink = time + 0.5;
-		self.think = PetDogThink;
-		return;
-	}
+        if (self.hound_owner.health <= 0 || self.hound_owner.deadflag != DEAD_NO)
+        {
+                self.velocity = '0 0 0';
+                self.nextthink = time + 0.5;
+                self.think = PetDogThink;
+                return;
+        }
 
-	delta = self.owner.origin - self.origin;
-	delta_z = 0;
-	dist = vlen(delta);
+        delta = self.hound_owner.origin - self.origin;
+        delta_z = 0;
+        dist = vlen(delta);
 
 	best = world;
 	bestdist = 0;
@@ -504,8 +504,8 @@ void() PetDogThink =
 		targ = findradius(self.origin, 600);
 		while (targ)
 		{
-			if (targ.classname == "player" && targ != self.owner && targ.health > 0 && targ.deadflag == DEAD_NO)
-			{
+                        if (targ.classname == "player" && targ != self.hound_owner && targ.health > 0 && targ.deadflag == DEAD_NO)
+        {
 				local float tdist;
 				tdist = vlen(targ.origin - self.origin);
 
@@ -550,40 +550,40 @@ void() PetDogThink =
 };
 
 // Spawn a friendly rottweiler that belongs to the owning player.
-void(entity owner) spawn_pet_dog =
+void(entity owner_player) spawn_pet_dog =
 {
-	local entity dog;
-	local entity oldself;
-	local vector spawn_offset;
+        local entity dog;
+        local entity oldself;
+        local vector spawn_offset;
 
-	if (!teamplay_bloodhound)
-		return;
+        if (!teamplay_bloodhound)
+                return;
 
-	if (!owner)
-		return;
+        if (!owner_player)
+                return;
 
-	dog = spawn();
-	dog.owner = owner;
-	dog.is_pet = TRUE;
-	dog.classname = "monster_dog";
+        dog = spawn();
+        dog.hound_owner = owner_player;
+        dog.is_pet = TRUE;
+        dog.classname = "monster_dog";
 
 	spawn_offset = '0 0 0';
 	spawn_offset_x = (random() * 40) - 20;
 	spawn_offset_y = (random() * 40) - 20;
-	setorigin(dog, owner.origin + spawn_offset);
+        setorigin(dog, owner_player.origin + spawn_offset);
 
-	oldself = self;
-	self = dog;
-	monster_dog();
-	self.owner = owner;
-	self.team = owner.team;
-	self.enemy = world;
-	self.goalentity = owner;
-	self.is_pet = TRUE;
-	self.think = PetDogThink;
-	self.nextthink = time + 0.1;
-	self.takedamage = DAMAGE_AIM;
-	self.deadflag = DEAD_NO;
-	owner.hound_next_id = owner.hound_next_id + 1;
-	self = oldself;
+        oldself = self;
+        self = dog;
+        monster_dog();
+        self.hound_owner = owner_player;
+        self.team = owner_player.team;
+        self.enemy = world;
+        self.goalentity = owner_player;
+        self.is_pet = TRUE;
+        self.think = PetDogThink;
+        self.nextthink = time + 0.1;
+        self.takedamage = DAMAGE_AIM;
+        self.deadflag = DEAD_NO;
+        owner_player.hound_next_id = owner_player.hound_next_id + 1;
+        self = oldself;
 };
