@@ -31,6 +31,7 @@ $skin skin
 $scale 1
 
 void() finale_1;
+void(entity attacker, float damage) finale_die;
 void() finale_2;
 void() finale_3;
 void() finale_4;
@@ -190,6 +191,11 @@ void() finale_1 =
 	}
 };
 
+void(entity attacker, float damage) finale_die =
+{
+	finale_1();
+};
+
 void() finale_2 =
 {
 	local vector	o;
@@ -338,10 +344,10 @@ void() monster_oldone =
 	self.health = 40000;		// kill by telefrag
 	self.max_health = 40000;	// kill by telefrag
 	self.think = old_idle1;
-	self.nextthink = time + 0.1;	
+	self.nextthink = time + 0.1;
 	self.takedamage = DAMAGE_YES;
 	self.th_pain = SUB_Null;
-	self.th_die = finale_1;
+	self.th_die = finale_die;
 	shub = self;
 	
 	total_monsters = total_monsters + 1;
