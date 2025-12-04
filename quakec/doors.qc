@@ -601,6 +601,8 @@ void() fd_secret_move4;
 void() fd_secret_move5;
 void() fd_secret_move6;
 void() fd_secret_done;
+void(entity attacker, float damage) fd_secret_pain;
+void(entity attacker, float damage) fd_secret_die;
 
 float SECRET_OPEN_ONCE = 1;		// stays open
 float SECRET_1ST_LEFT = 2;		// 1st move is left of arrow
@@ -713,10 +715,20 @@ void () fd_secret_done =
 	{
 		self.health = 10000;
 		self.takedamage = DAMAGE_YES;
-		self.th_pain = fd_secret_use;	
-		self.th_die = fd_secret_use; // secret door kill crash fix
+		self.th_pain = fd_secret_pain;
+		self.th_die = fd_secret_die; // secret door kill crash fix
 	}
 	sound(self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
+};
+
+void(entity attacker, float damage) fd_secret_pain =
+{
+	fd_secret_use();
+};
+
+void(entity attacker, float damage) fd_secret_die =
+{
+	fd_secret_use();
 };
 
 void () secret_blocked =
@@ -824,8 +836,8 @@ void () func_door_secret =
 	{
 		self.health = 10000;
 		self.takedamage = DAMAGE_YES;
-		self.th_pain = fd_secret_use;
-		self.th_die = fd_secret_use;
+		self.th_pain = fd_secret_pain;
+		self.th_die = fd_secret_die;
 	}
 
 	self.oldorigin = self.origin;
