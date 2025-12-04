@@ -52,6 +52,12 @@ $frame walk1 walk2 walk3 walk4 walk5 walk6 walk7 walk8
 
 void() dog_leap1;
 void() dog_run1;
+void() PetDogThink;
+void() PetDogRespawnThink;
+void(entity owner) spawn_pet_dog;
+void(entity owner) SchedulePetRespawn;
+void() PetDogHandleDeath;
+void(entity player) BloodhoundCheckElimination;
 
 /*
 ================
@@ -86,6 +92,8 @@ void()	Dog_JumpTouch =
 	local	float	ldmg;
 
 	if (self.health <= 0)
+		return;
+	if (self.is_pet && other == self.owner)
 		return;
 		
 	if (other.takedamage)
@@ -251,9 +259,11 @@ void() dog_dieb9		=[	$deathb9,	dog_dieb9	] {};
 
 void() dog_die =
 {
-	// check for gib
-	if (self.health < -35)
-	{
+PetDogHandleDeath();
+
+// check for gib
+if (self.health < -35)
+{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowGib ("progs/gib3.mdl", self.health);
 		ThrowGib ("progs/gib3.mdl", self.health);
@@ -347,7 +357,7 @@ float()	DogCheckAttack =
 /*QUAKED monster_dog (1 0 0) (-32 -32 -24) (32 32 40) Ambush*/
 void() monster_dog =
 {
-	if (deathmatch)
+	if (deathmatch && !(teamplay_bloodhound && self.is_pet))
 	{
 		remove(self);
 		return;
@@ -366,7 +376,7 @@ void() monster_dog =
 
 	setmodel (self, "progs/dog.mdl");
 
-	self.noise = "dog/dsight.wav";	
+	self.noise = "dog/dsight.wav";
 	self.netname = "$qc_rottweiler";
 	self.killstring = "$qc_ks_rottweiler";
 
@@ -385,4 +395,195 @@ void() monster_dog =
 	self.combat_style = CS_MELEE;
 
 	walkmonster_start();
+};
+
+
+/*
+==============================================================================
+
+Bloodhound pet helpers
+
+==============================================================================
+*/
+
+// Think function scheduled by the respawn timer to recreate a pet.
+void() PetDogRespawnThink =
+{
+	local entity owner;
+
+	owner = self.owner;
+	remove(self);
+
+	if (!teamplay_bloodhound)
+		return;
+
+	if (!owner)
+		return;
+
+	if (owner.classname != "player")
+		return;
+
+	if (owner.health <= 0 || owner.deadflag != DEAD_NO)
+		return;
+
+	spawn_pet_dog(owner);
+	owner.hound_alive = owner.hound_alive + 1;
+};
+
+// Schedule a delayed respawn for a pet dog after it dies.
+void(entity owner) SchedulePetRespawn =
+{
+	local entity timer;
+
+	if (!owner)
+		return;
+
+	timer = spawn();
+	timer.owner = owner;
+	timer.classname = "hound_respawn";
+	timer.think = PetDogRespawnThink;
+	timer.nextthink = time + 120;
+};
+
+// Handle bookkeeping when a pet dies so we can track counts and respawns.
+void() PetDogHandleDeath =
+{
+	if (!self.is_pet)
+		return;
+
+	if (!teamplay_bloodhound)
+		return;
+
+	if (self.owner)
+	{
+		if (self.owner.hound_alive > 0)
+			self.owner.hound_alive = self.owner.hound_alive - 1;
+
+		if (self.owner.hound_max > 0)
+		{
+			SchedulePetRespawn(self.owner);
+			self.owner.hound_max = self.owner.hound_max - 1;
+		}
+
+		BloodhoundCheckElimination(self.owner);
+	}
+};
+
+// Pet AI: follow the owner and attack nearby enemy players.
+void() PetDogThink =
+{
+	local vector delta;
+	local float dist;
+	local entity targ;
+	local entity best;
+	local float bestdist;
+
+	if (!teamplay_bloodhound || !self.owner)
+	{
+		remove(self);
+		return;
+	}
+
+	if (self.owner.health <= 0 || self.owner.deadflag != DEAD_NO)
+	{
+		self.velocity = '0 0 0';
+		self.nextthink = time + 0.5;
+		self.think = PetDogThink;
+		return;
+	}
+
+	delta = self.owner.origin - self.origin;
+	delta_z = 0;
+	dist = vlen(delta);
+
+	best = world;
+	bestdist = 0;
+
+	if (dist <= 300)
+	{
+		targ = findradius(self.origin, 600);
+		while (targ)
+		{
+			if (targ.classname == "player" && targ != self.owner && targ.health > 0 && targ.deadflag == DEAD_NO)
+			{
+				local float tdist;
+				tdist = vlen(targ.origin - self.origin);
+
+				if (bestdist == 0 || tdist < bestdist)
+				{
+					best = targ;
+					bestdist = tdist;
+				}
+			}
+
+			targ = targ.chain;
+		}
+	}
+
+	if (best && bestdist > 0)
+	{
+		self.enemy = best;
+		delta = best.origin - self.origin;
+		delta_z = 0;
+		self.ideal_yaw = vectoyaw(delta);
+		ChangeYaw();
+
+		if (bestdist > 80)
+			walkmove(self.ideal_yaw, 25);
+		else
+			dog_bite();
+	}
+	else
+	{
+		self.enemy = world;
+		self.ideal_yaw = vectoyaw(delta);
+		ChangeYaw();
+
+		if (dist > 300)
+			walkmove(self.ideal_yaw, 20);
+		else
+			walkmove(self.ideal_yaw, 10);
+	}
+
+	self.think = PetDogThink;
+	self.nextthink = time + 0.1;
+};
+
+// Spawn a friendly rottweiler that belongs to the owning player.
+void(entity owner) spawn_pet_dog =
+{
+	local entity dog;
+	local entity oldself;
+	local vector spawn_offset;
+
+	if (!teamplay_bloodhound)
+		return;
+
+	if (!owner)
+		return;
+
+	dog = spawn();
+	dog.owner = owner;
+	dog.is_pet = TRUE;
+	dog.classname = "monster_dog";
+
+	spawn_offset = '0 0 0';
+	spawn_offset_x = (random() * 40) - 20;
+	spawn_offset_y = (random() * 40) - 20;
+	setorigin(dog, owner.origin + spawn_offset);
+
+	oldself = self;
+	self = dog;
+	monster_dog();
+	self.owner = owner;
+	self.team = owner.team;
+	self.enemy = world;
+	self.goalentity = owner;
+	self.is_pet = TRUE;
+	self.think = PetDogThink;
+	self.nextthink = time + 0.1;
+	self.takedamage = DAMAGE_AIM;
+	self.deadflag = DEAD_NO;
+	owner.hound_next_id = owner.hound_next_id + 1;
+	self = oldself;
 };

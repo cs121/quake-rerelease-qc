@@ -24,6 +24,8 @@ void(entity attacker, float damage) player_pain;
 void() player_stand1;
 void (vector org) spawn_tfog;
 void (vector org, entity death_owner) spawn_tdeath;
+void(entity owner) spawn_pet_dog;
+void(entity player) BloodhoundCheckElimination;
 
 float	modelindex_eyes, modelindex_player;
 
@@ -700,6 +702,8 @@ void() PlayerDie;
 void() PutClientInServer =
 {
 	local	entity spot;
+	local float shouldTelefrag;
+	local float i;
 
 	self.classname = "player";
 	if (skill == 3 && !deathmatch)
@@ -744,7 +748,6 @@ void() PutClientInServer =
 	// paustime is set by teleporters to keep the player from moving a while
 	self.pausetime = 0;
 
-	local float shouldTelefrag;
 
 	if (self.spawn_deferred > 0 && time >= self.spawn_deferred) {
 		dprint("forcing telefrag on this spawn\n");
@@ -805,8 +808,65 @@ void() PutClientInServer =
 	}
 
 	spawn_tdeath (self.origin, self);
-	
+
+	if (teamplay_bloodhound)
+	{
+		if (self.hound_next_id == 0)
+		{
+			self.hound_max = 5;
+			self.hound_alive = 5;
+			self.hound_next_id = 1;
+
+			for (i = 0; i < 5; i = i + 1)
+				spawn_pet_dog(self);
+		}
+	}
+	else
+	{
+		self.hound_max = 0;
+		self.hound_alive = 0;
+		self.hound_next_id = 0;
+	}
+
 	stuffcmd(self, "-attack\n"); // prevent shooting after respawning
+};
+
+/*
+============
+Bloodhound elimination and victory logic
+============
+*/
+void(entity player) BloodhoundCheckElimination =
+{
+	local entity e;
+	local entity winner;
+	local float active_players;
+
+	if (!teamplay_bloodhound)
+		return;
+
+	if (player.hound_max > 0 || player.hound_alive > 0)
+		return;
+
+	bprint(player.netname, " has lost all hounds and is out of the game!\n");
+
+	e = nextent(world);
+	while (e)
+	{
+		if (e.classname == "player")
+		{
+			if (e.hound_max > 0 || e.hound_alive > 0)
+			{
+				active_players = active_players + 1;
+				winner = e;
+			}
+		}
+
+		e = nextent(e);
+	}
+
+	if (active_players == 1)
+		bprint(winner.netname, " wins the Bloodhound match!\n");
 };
 
 

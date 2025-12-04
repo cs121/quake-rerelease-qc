@@ -357,9 +357,10 @@ void() worldspawn =
 };
 
 void StartFrame() {
-	teamplay = cvar("teamplay");
-	skill = cvar("skill");
-	cheats_allowed = cvar("sv_cheats");
+        teamplay = cvar("teamplay");
+        teamplay_bloodhound = cvar("teamplay_bloodhound");
+        skill = cvar("skill");
+        cheats_allowed = cvar("sv_cheats");
 
     // save off a global here so it gets included in savegames
     if (!campaign_valid) {
