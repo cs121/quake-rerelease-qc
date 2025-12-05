@@ -20,6 +20,7 @@ extern void M_Menu_JoinServer_f(void);
 extern void M_Menu_NewGame_f(void);
 extern void M_Menu_PlayerSetup_f(void);
 extern void M_Menu_Options_f(void);
+extern void M_StartServer_f(void);
 
 // Quake key constants
 #define K_ESCAPE 27
@@ -42,31 +43,31 @@ static const mp_menu_item_t mp_menu_fallback_items[] = {
     {"Options", "menu_options"},
 };
 
-// Lookup table allowing JSON actions prefixed with "menu_" to call engine menu functions.
-typedef void (*ui_action_fn)(void);
 typedef struct {
-    const char *command;
-    ui_action_fn fn;
-} mp_engine_action_t;
+    const char *name;
+    void (*func)(void);
+} ui_action_t;
 
-static const mp_engine_action_t mp_engine_actions[] = {
+static ui_action_t ui_actions[] = {
+    {"menu_startserver", M_StartServer_f},
     {"menu_joinserver", M_Menu_JoinServer_f},
     {"menu_newgame", M_Menu_NewGame_f},
     {"menu_playersetup", M_Menu_PlayerSetup_f},
     {"menu_options", M_Menu_Options_f},
+    {NULL, NULL}
 };
 
-qboolean UI_MPMenu_InvokeEngineAction(const char *cmd) {
-    if (!cmd) {
-        return false;
+void UI_MPMenu_InvokeEngineAction(const char *name) {
+    if (!name) {
+        return;
     }
-    for (unsigned int i = 0; i < sizeof(mp_engine_actions) / sizeof(mp_engine_actions[0]); ++i) {
-        if (strcmp(cmd, mp_engine_actions[i].command) == 0 && mp_engine_actions[i].fn) {
-            mp_engine_actions[i].fn();
-            return true;
+
+    for (const ui_action_t *action = ui_actions; action->name; ++action) {
+        if (strcmp(name, action->name) == 0 && action->func) {
+            action->func();
+            return;
         }
     }
-    return false;
 }
 
 static void MPMenu_SetFallback(void) {
@@ -101,9 +102,8 @@ static void MPMenu_ExecuteCommand(const char *cmd) {
     }
 
     if (strncmp(cmd, "menu_", 5) == 0) {
-        if (UI_MPMenu_InvokeEngineAction(cmd)) {
-            return;
-        }
+        UI_MPMenu_InvokeEngineAction(cmd);
+        return;
     }
 
     Cbuf_AddText(cmd);
